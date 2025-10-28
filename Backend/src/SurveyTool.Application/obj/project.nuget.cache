@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "wWdLRA3b0fY=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\lukev\\OneDrive\\Desktop\\Projects\\survey-tool-cap-index\\Backend\\src\\SurveyTool.Application\\SurveyTool.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\lukev\\.nuget\\packages\\fluentvalidation\\12.0.0\\fluentvalidation.12.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

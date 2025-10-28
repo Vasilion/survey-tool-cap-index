@@ -1,0 +1,15 @@
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\bin\Debug\net8.0\SurveyTool.Application.deps.json
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\bin\Debug\net8.0\SurveyTool.Application.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\bin\Debug\net8.0\SurveyTool.Application.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\bin\Debug\net8.0\SurveyTool.Domain.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\bin\Debug\net8.0\SurveyTool.Domain.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.csproj.AssemblyReference.cache
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.AssemblyInfoInputs.cache
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.AssemblyInfo.cs
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.csproj.CoreCompileInputs.cache
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTo.CF33755F.Up2Date
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\refint\SurveyTool.Application.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\SurveyTool.Application.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Application\obj\Debug\net8.0\ref\SurveyTool.Application.dll

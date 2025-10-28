@@ -1,0 +1,17 @@
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Infrastructure.deps.json
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Infrastructure.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Infrastructure.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Application.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Domain.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Domain.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\bin\Debug\net8.0\SurveyTool.Application.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.AssemblyInfo.cs
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTo.754EB831.Up2Date
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\refint\SurveyTool.Infrastructure.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.pdb
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\ref\SurveyTool.Infrastructure.dll

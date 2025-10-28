@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4342D471-4057-4C6A-826C-9B067A62EA54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveyTool.Api", "src\SurveyTool.Api\SurveyTool.Api.csproj", "{712B0D0B-9196-4402-B1B3-872A041CAEA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveyTool.Application", "src\SurveyTool.Application\SurveyTool.Application.csproj", "{8C10A777-7C11-4E5A-A5E6-93C2072C6C0F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveyTool.Domain", "src\SurveyTool.Domain\SurveyTool.Domain.csproj", "{9E666593-74C5-4FD3-B7B4-CB8BAF1A61DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveyTool.Infrastructure", "src\SurveyTool.Infrastructure\SurveyTool.Infrastructure.csproj", "{E0D1538A-6ED9-4191-A535-D7674FD12911}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{601B7DD8-CF50-435A-91A4-630993612F7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveyTool.UnitTests", "tests\SurveyTool.UnitTests\SurveyTool.UnitTests.csproj", "{4F325631-4C94-4DE1-B3F9-C7425114EC61}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{712B0D0B-9196-4402-B1B3-872A041CAEA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{712B0D0B-9196-4402-B1B3-872A041CAEA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{712B0D0B-9196-4402-B1B3-872A041CAEA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{712B0D0B-9196-4402-B1B3-872A041CAEA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C10A777-7C11-4E5A-A5E6-93C2072C6C0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C10A777-7C11-4E5A-A5E6-93C2072C6C0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C10A777-7C11-4E5A-A5E6-93C2072C6C0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C10A777-7C11-4E5A-A5E6-93C2072C6C0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E666593-74C5-4FD3-B7B4-CB8BAF1A61DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E666593-74C5-4FD3-B7B4-CB8BAF1A61DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E666593-74C5-4FD3-B7B4-CB8BAF1A61DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E666593-74C5-4FD3-B7B4-CB8BAF1A61DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0D1538A-6ED9-4191-A535-D7674FD12911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0D1538A-6ED9-4191-A535-D7674FD12911}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0D1538A-6ED9-4191-A535-D7674FD12911}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0D1538A-6ED9-4191-A535-D7674FD12911}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F325631-4C94-4DE1-B3F9-C7425114EC61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F325631-4C94-4DE1-B3F9-C7425114EC61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F325631-4C94-4DE1-B3F9-C7425114EC61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F325631-4C94-4DE1-B3F9-C7425114EC61}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{712B0D0B-9196-4402-B1B3-872A041CAEA7} = {4342D471-4057-4C6A-826C-9B067A62EA54}
+		{8C10A777-7C11-4E5A-A5E6-93C2072C6C0F} = {4342D471-4057-4C6A-826C-9B067A62EA54}
+		{9E666593-74C5-4FD3-B7B4-CB8BAF1A61DB} = {4342D471-4057-4C6A-826C-9B067A62EA54}
+		{E0D1538A-6ED9-4191-A535-D7674FD12911} = {4342D471-4057-4C6A-826C-9B067A62EA54}
+		{4F325631-4C94-4DE1-B3F9-C7425114EC61} = {601B7DD8-CF50-435A-91A4-630993612F7E}
+	EndGlobalSection
+EndGlobal

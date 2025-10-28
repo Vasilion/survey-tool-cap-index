@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "dgSpecHash": "Gzq9VqVo0jQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\lukev\\OneDrive\\Desktop\\Projects\\survey-tool-cap-index\\Backend\\src\\SurveyTool.Infrastructure\\SurveyTool.Infrastructure.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\lukev\\.nuget\\packages\\fluentvalidation\\12.0.0\\fluentvalidation.12.0.0.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.10\\microsoft.entityframeworkcore.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\9.0.10\\microsoft.entityframeworkcore.abstractions.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\9.0.10\\microsoft.entityframeworkcore.analyzers.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.entityframeworkcore.inmemory\\9.0.10\\microsoft.entityframeworkcore.inmemory.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\9.0.10\\microsoft.extensions.caching.abstractions.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.caching.memory\\9.0.10\\microsoft.extensions.caching.memory.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\9.0.10\\microsoft.extensions.dependencyinjection.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.10\\microsoft.extensions.dependencyinjection.abstractions.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.logging\\9.0.10\\microsoft.extensions.logging.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.10\\microsoft.extensions.logging.abstractions.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.options\\9.0.10\\microsoft.extensions.options.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.10\\microsoft.extensions.primitives.9.0.10.nupkg.sha512",
+    "C:\\Users\\lukev\\.nuget\\packages\\system.diagnostics.diagnosticsource\\9.0.10\\system.diagnostics.diagnosticsource.9.0.10.nupkg.sha512"
+  ],
+  "logs": []
+}
