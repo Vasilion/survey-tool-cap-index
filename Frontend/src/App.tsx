@@ -21,57 +21,39 @@ export default function App() {
   };
 
   return (
-    <Box
-      sx={{ flexGrow: 1, minHeight: "100vh", bgcolor: "background.default" }}
-    >
-      <AppBar position="static" elevation={0}>
-        <Toolbar
-          sx={{
-            flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: 1, sm: 3 },
-            justifyContent: { xs: "center", sm: "center" },
-          }}
-        >
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              textAlign: "center",
-              mb: { xs: 1, sm: 0 },
-            }}
-          >
-            📊 Survey Tool
-          </Typography>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            textColor="inherit"
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              width: { xs: "100%", sm: "auto" },
-              justifyContent: "center",
-            }}
-          >
-            <Tab label="Take Survey" value="take" />
-            <Tab label="Manage Surveys" value="manage" />
-          </Tabs>
+    <Box className="container-main">
+      <AppBar position="static" elevation={0} className="app-bar">
+        <Toolbar className="toolbar toolbar-desktop">
+          <Box className="nav-content-wrapper">
+            <Typography
+              variant="h4"
+              component="div"
+              className="nav-title floating title title-desktop"
+            >
+              📊 Survey Tool
+            </Typography>
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              textColor="inherit"
+              variant="scrollable"
+              scrollButtons={false}
+              className="tabs-container tabs-container-desktop"
+            >
+              <Tab label="Take Survey" value="take" className="tab" />
+              <Tab label="Manage Surveys" value="manage" className="tab" />
+            </Tabs>
+          </Box>
         </Toolbar>
       </AppBar>
 
       <Container
         maxWidth="lg"
-        sx={{
-          py: { xs: 2, sm: 4 },
-          px: { xs: 1, sm: 2 },
-        }}
+        className="content-container content-container-desktop"
       >
         <Paper
-          elevation={3}
-          sx={{
-            p: { xs: 2, sm: 3 },
-            borderRadius: { xs: 1, sm: 2 },
-          }}
+          elevation={0}
+          className="custom-card main-paper main-paper-desktop"
         >
           {activeTab === "take" && <SurveyPage />}
           {activeTab === "manage" && <SurveyManagementPage />}

@@ -86,6 +86,7 @@ export default function SurveyPage() {
       <Typography
         variant="h4"
         gutterBottom
+        className="gradient-text"
         sx={{
           textAlign: { xs: "center", sm: "left" },
           fontSize: { xs: "1.75rem", sm: "2.125rem" },
@@ -95,8 +96,8 @@ export default function SurveyPage() {
       </Typography>
 
       {surveys && surveys.length > 0 && (
-        <Card sx={{ mb: 3 }}>
-          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+        <Card className="survey-card">
+          <CardContent className="survey-card-content">
             <FormControl fullWidth>
               <InputLabel>Select Survey</InputLabel>
               <Select
@@ -117,28 +118,19 @@ export default function SurveyPage() {
 
       {!survey ? (
         <Card>
-          <CardContent
-            sx={{
-              textAlign: "center",
-              py: { xs: 4, sm: 6 },
-              px: { xs: 2, sm: 3 },
-            }}
-          >
+          <CardContent className="empty-state">
             <Typography
               variant="h6"
               color="text.secondary"
               gutterBottom
-              sx={{ fontSize: { xs: "1.1rem", sm: "1.25rem" } }}
+              className="survey-title"
             >
               {surveys && surveys.length === 0
                 ? "No surveys available"
                 : "Select a survey to begin"}
             </Typography>
             {surveys && surveys.length === 0 && (
-              <Typography
-                color="text.secondary"
-                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
-              >
+              <Typography color="text.secondary" className="survey-description">
                 Create a survey in the "Manage Surveys" tab to get started
               </Typography>
             )}
@@ -146,7 +138,7 @@ export default function SurveyPage() {
         </Card>
       ) : (
         <>
-          <Card sx={{ mb: 3 }}>
+          <Card className="survey-card">
             <CardContent>
               <Box
                 display="flex"
@@ -171,12 +163,12 @@ export default function SurveyPage() {
               <LinearProgress
                 variant="determinate"
                 value={progress}
-                sx={{ mt: 2, height: 8, borderRadius: 4 }}
+                className="progress-container"
               />
             </CardContent>
           </Card>
 
-          <Paper elevation={2} sx={{ p: 3 }}>
+          <Paper elevation={2} className="questions-container">
             {survey.questions
               .sort((a, b) => a.order - b.order)
               .filter((q) => visibleIds.has(q.id))
@@ -189,7 +181,7 @@ export default function SurveyPage() {
                 />
               ))}
 
-            <Divider sx={{ my: 3 }} />
+            <Divider className="divider" />
 
             <Box
               display="flex"
@@ -204,7 +196,7 @@ export default function SurveyPage() {
                 size="large"
                 onClick={handleSubmit}
                 disabled={submit.isPending || Object.keys(answers).length === 0}
-                sx={{ minWidth: 120 }}
+                className="select-container"
               >
                 {submit.isPending ? (
                   <CircularProgress size={24} />
@@ -240,7 +232,7 @@ export default function SurveyPage() {
                     setAnswers({});
                     submit.reset();
                   }}
-                  sx={{ mt: 2, color: "inherit", borderColor: "inherit" }}
+                  className="submit-button"
                 >
                   Take Again
                 </Button>
@@ -249,7 +241,7 @@ export default function SurveyPage() {
           )}
 
           {submit.isError && (
-            <Alert severity="error" sx={{ mt: 3 }}>
+            <Alert severity="error" className="error-alert">
               Submission failed. Please try again.
             </Alert>
           )}

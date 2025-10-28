@@ -71,7 +71,7 @@ export default function SurveyManagementPage() {
   if (showBuilder) {
     return (
       <SurveyBuilderDialog
-        key={selectedSurvey?.id || "new"} // Force remount when switching surveys
+        key={selectedSurvey?.id || "new"}
         surveyId={selectedSurvey?.id}
         onClose={() => {
           setShowBuilder(false);
@@ -94,6 +94,7 @@ export default function SurveyManagementPage() {
         <Typography
           variant="h4"
           gutterBottom
+          className="gradient-text"
           sx={{
             textAlign: { xs: "center", sm: "left" },
             mb: { xs: 0, sm: 1 },
@@ -117,7 +118,7 @@ export default function SurveyManagementPage() {
 
       {surveys && surveys.length === 0 ? (
         <Card>
-          <CardContent sx={{ textAlign: "center", py: 6 }}>
+          <CardContent className="empty-state">
             <Typography variant="h6" color="text.secondary" gutterBottom>
               No surveys found
             </Typography>
@@ -130,28 +131,24 @@ export default function SurveyManagementPage() {
           </CardContent>
         </Card>
       ) : (
-        <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid container spacing={{ xs: 2, sm: 3 }} className="survey-grid">
           {surveys?.map((survey) => (
             <Grid item xs={12} sm={6} md={6} lg={4} key={survey.id}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "transform 0.2s ease-in-out",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                  },
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" gutterBottom noWrap>
+              <Card className="survey-item-card">
+                <CardContent className="survey-item-content">
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    noWrap
+                    className="survey-item-title"
+                  >
                     {survey.title}
                   </Typography>
                   <Typography
                     color="text.secondary"
                     variant="body2"
                     gutterBottom
+                    className="survey-item-description"
                   >
                     ID: {survey.id.slice(0, 8)}...
                   </Typography>
@@ -159,26 +156,17 @@ export default function SurveyManagementPage() {
                     label="Active"
                     color="success"
                     size="small"
-                    sx={{ mt: 1 }}
+                    className="survey-item-stats"
                   />
                 </CardContent>
                 <Divider />
-                <Box
-                  p={2}
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  gap={1}
-                >
+                <Box className="survey-item-actions">
                   <IconButton
                     color="primary"
                     onClick={() => handleEdit(survey)}
                     title="Edit Survey"
                     size="small"
-                    sx={{
-                      flex: 1,
-                      minWidth: "auto",
-                    }}
+                    className="action-button-small"
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -187,10 +175,7 @@ export default function SurveyManagementPage() {
                     title="View Survey"
                     onClick={() => handleView(survey)}
                     size="small"
-                    sx={{
-                      flex: 1,
-                      minWidth: "auto",
-                    }}
+                    className="action-button-small"
                   >
                     <ViewIcon fontSize="small" />
                   </IconButton>
@@ -199,10 +184,7 @@ export default function SurveyManagementPage() {
                     onClick={() => handleDelete(survey)}
                     title="Delete Survey"
                     size="small"
-                    sx={{
-                      flex: 1,
-                      minWidth: "auto",
-                    }}
+                    className="action-button-small"
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
