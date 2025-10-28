@@ -139,6 +139,10 @@ cd frontend
 npm test
 ```
 
+Additional test commands:
+- `npm run test:ui` - Run tests with UI interface
+- `npm run test:coverage` - Run tests with coverage report
+
 ## 📁 Project Structure
 
 ```
