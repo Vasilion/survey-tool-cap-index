@@ -28,15 +28,15 @@ export default function App() {
         <Toolbar
           sx={{
             flexDirection: { xs: "column", sm: "row" },
-            gap: { xs: 1, sm: 0 },
+            gap: { xs: 1, sm: 3 },
+            justifyContent: { xs: "center", sm: "center" },
           }}
         >
           <Typography
             variant="h6"
             component="div"
             sx={{
-              flexGrow: 1,
-              textAlign: { xs: "center", sm: "left" },
+              textAlign: "center",
               mb: { xs: 1, sm: 0 },
             }}
           >
@@ -50,7 +50,7 @@ export default function App() {
             scrollButtons="auto"
             sx={{
               width: { xs: "100%", sm: "auto" },
-              justifyContent: { xs: "center", sm: "flex-end" },
+              justifyContent: "center",
             }}
           >
             <Tab label="Take Survey" value="take" />
