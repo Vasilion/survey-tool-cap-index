@@ -10,7 +10,7 @@ erDiagram
     Survey {
       guid Id PK
       string Title
-      string Description nullable
+      string Description
     }
     Question {
       guid Id PK
@@ -18,8 +18,8 @@ erDiagram
       string Text
       int QuestionType
       int Order
-      guid ParentQuestionId nullable
-      string VisibilityRuleJson nullable
+      guid ParentQuestionId
+      string VisibilityRuleJson
     }
     AnswerOption {
       guid Id PK
@@ -37,8 +37,8 @@ erDiagram
       guid Id PK
       guid SurveyResponseId FK
       guid QuestionId FK
-      string SelectedOptionIdsJson nullable
-      string FreeText nullable
+      string SelectedOptionIdsJson
+      string FreeText
       int ItemScore
     }
     VisibilityRule {
@@ -49,6 +49,14 @@ erDiagram
 
 ## Data Model Details
 
+### Nullable Fields
+
+- **Survey.Description**: Optional survey description
+- **Question.ParentQuestionId**: Only set for conditional questions
+- **Question.VisibilityRuleJson**: Only set for conditional questions
+- **ResponseItem.SelectedOptionIdsJson**: Only set for choice questions
+- **ResponseItem.FreeText**: Only set for free text questions
+
 ### JSON Fields
 
 **VisibilityRuleJson (Question table)**
@@ -56,12 +64,14 @@ erDiagram
 - Stores a JSON serialized `VisibilityRule` object
 - Contains `ParentQuestionId` and `VisibleWhenSelectedOptionIds` array
 - Used for conditional question display logic
+- Nullable - only set for conditional questions
 
 **SelectedOptionIdsJson (ResponseItem table)**
 
 - Stores a JSON serialized array of `Guid` values
 - Represents the selected answer option IDs for choice questions
 - Empty array for free text questions
+- Nullable - only set for choice questions
 
 ### Relationships
 
