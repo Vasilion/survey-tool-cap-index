@@ -235,8 +235,25 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
   }
 
   return (
-    <Dialog open={true} maxWidth="lg" fullWidth>
-      <DialogTitle>
+    <Dialog
+      open={true}
+      maxWidth="lg"
+      fullWidth
+      sx={{
+        "& .MuiDialog-paper": {
+          margin: { xs: 0, sm: 2 },
+          height: { xs: "100vh", sm: "auto" },
+          maxHeight: { xs: "100vh", sm: "90vh" },
+          width: { xs: "100vw", sm: "auto" },
+        },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          fontSize: { xs: "1.25rem", sm: "1.5rem" },
+          pb: { xs: 1, sm: 2 },
+        }}
+      >
         {surveyId ? "Edit Survey" : "Create New Survey"}
       </DialogTitle>
       <DialogContent>
@@ -279,20 +296,29 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
 
             {questions.map((question, index) => (
               <Card key={index} sx={{ mb: 2 }}>
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
                     alignItems="flex-start"
                     mb={2}
+                    flexDirection={{ xs: "column", sm: "row" }}
+                    gap={1}
                   >
-                    <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        flexGrow: 1,
+                        fontSize: { xs: "1rem", sm: "1.25rem" },
+                      }}
+                    >
                       Question {index + 1}
                     </Typography>
                     <IconButton
                       color="error"
                       onClick={() => deleteQuestion(index)}
                       size="small"
+                      sx={{ alignSelf: { xs: "flex-end", sm: "auto" } }}
                     >
                       <DeleteIcon />
                     </IconButton>
@@ -367,6 +393,7 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                           alignItems="center"
                           gap={1}
                           mb={1}
+                          flexDirection={{ xs: "column", sm: "row" }}
                         >
                           <TextField
                             fullWidth
@@ -380,27 +407,39 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                             }
                             size="small"
                             required
+                            sx={{ mb: { xs: 1, sm: 0 } }}
                           />
-                          <TextField
-                            label="Weight"
-                            type="number"
-                            value={option.weight}
-                            onChange={(e) =>
-                              updateOption(index, optionIndex, {
-                                ...option,
-                                weight: parseInt(e.target.value) || 1,
-                              })
-                            }
-                            size="small"
-                            sx={{ width: 100 }}
-                          />
-                          <IconButton
-                            color="error"
-                            onClick={() => deleteOption(index, optionIndex)}
-                            size="small"
+                          <Box
+                            display="flex"
+                            alignItems="center"
+                            gap={1}
+                            width={{ xs: "100%", sm: "auto" }}
                           >
-                            <DeleteIcon />
-                          </IconButton>
+                            <TextField
+                              label="Weight"
+                              type="number"
+                              value={option.weight}
+                              onChange={(e) =>
+                                updateOption(index, optionIndex, {
+                                  ...option,
+                                  weight: parseInt(e.target.value) || 1,
+                                })
+                              }
+                              size="small"
+                              sx={{
+                                width: { xs: "100px", sm: 100 },
+                                flexShrink: 0,
+                              }}
+                            />
+                            <IconButton
+                              color="error"
+                              onClick={() => deleteOption(index, optionIndex)}
+                              size="small"
+                              sx={{ flexShrink: 0 }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
                         </Box>
                       ))}
                     </Box>

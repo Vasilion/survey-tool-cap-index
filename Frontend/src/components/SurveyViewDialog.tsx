@@ -62,8 +62,15 @@ export default function SurveyViewDialog({ surveyId }: Props) {
   return (
     <Box>
       <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h5" gutterBottom>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{
+              fontSize: { xs: "1.5rem", sm: "2rem" },
+              wordBreak: "break-word",
+            }}
+          >
             {survey.title}
           </Typography>
           {survey.description && (
@@ -71,7 +78,12 @@ export default function SurveyViewDialog({ surveyId }: Props) {
               {survey.description}
             </Typography>
           )}
-          <Box display="flex" gap={1} flexWrap="wrap">
+          <Box
+            display="flex"
+            gap={1}
+            flexWrap="wrap"
+            justifyContent={{ xs: "center", sm: "flex-start" }}
+          >
             <Chip
               label={`${survey.questions.length} Questions`}
               color="info"
@@ -94,20 +106,30 @@ export default function SurveyViewDialog({ surveyId }: Props) {
             .sort((a, b) => a.order - b.order)
             .map((question, index) => (
               <Card key={question.id} sx={{ mb: 2 }}>
-                <CardContent>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box
                     display="flex"
                     justifyContent="space-between"
                     alignItems="flex-start"
                     mb={2}
+                    flexDirection={{ xs: "column", sm: "row" }}
+                    gap={1}
                   >
-                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        flexGrow: 1,
+                        fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                        wordBreak: "break-word",
+                      }}
+                    >
                       {index + 1}. {question.text}
                     </Typography>
                     <Chip
                       label={getQuestionTypeLabel(question.type)}
                       color={getQuestionTypeColor(question.type)}
                       size="small"
+                      sx={{ alignSelf: { xs: "flex-start", sm: "auto" } }}
                     />
                   </Box>
 

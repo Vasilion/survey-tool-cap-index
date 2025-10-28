@@ -83,13 +83,20 @@ export default function SurveyPage() {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
+          textAlign: { xs: "center", sm: "left" },
+          fontSize: { xs: "1.75rem", sm: "2.125rem" },
+        }}
+      >
         Take a Survey
       </Typography>
 
       {surveys && surveys.length > 0 && (
         <Card sx={{ mb: 3 }}>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             <FormControl fullWidth>
               <InputLabel>Select Survey</InputLabel>
               <Select
@@ -110,15 +117,29 @@ export default function SurveyPage() {
 
       {!survey ? (
         <Card>
-          <CardContent sx={{ textAlign: "center", py: 6 }}>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
+          <CardContent
+            sx={{
+              textAlign: "center",
+              py: { xs: 4, sm: 6 },
+              px: { xs: 2, sm: 3 },
+            }}
+          >
+            <Typography
+              variant="h6"
+              color="text.secondary"
+              gutterBottom
+              sx={{ fontSize: { xs: "1.1rem", sm: "1.25rem" } }}
+            >
               {surveys && surveys.length === 0
                 ? "No surveys available"
                 : "Select a survey to begin"}
             </Typography>
             {surveys && surveys.length === 0 && (
-              <Typography color="text.secondary">
-                Create a survey in the "Build Survey" tab to get started
+              <Typography
+                color="text.secondary"
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+              >
+                Create a survey in the "Manage Surveys" tab to get started
               </Typography>
             )}
           </CardContent>

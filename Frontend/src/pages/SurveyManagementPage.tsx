@@ -85,18 +85,31 @@ export default function SurveyManagementPage() {
     <Box>
       <Box
         display="flex"
+        flexDirection={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
-        alignItems="center"
+        alignItems={{ xs: "stretch", sm: "center" }}
         mb={3}
+        gap={2}
       >
-        <Typography variant="h4" gutterBottom>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            textAlign: { xs: "center", sm: "left" },
+            mb: { xs: 0, sm: 1 },
+          }}
+        >
           Survey Management
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleCreateNew}
-          sx={{ borderRadius: 2 }}
+          sx={{
+            borderRadius: 2,
+            width: { xs: "100%", sm: "auto" },
+            minWidth: { xs: "auto", sm: "200px" },
+          }}
         >
           Create New Survey
         </Button>
@@ -117,9 +130,9 @@ export default function SurveyManagementPage() {
           </CardContent>
         </Card>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={{ xs: 2, sm: 3 }}>
           {surveys?.map((survey) => (
-            <Grid item xs={12} md={6} lg={4} key={survey.id}>
+            <Grid item xs={12} sm={6} md={6} lg={4} key={survey.id}>
               <Card
                 sx={{
                   height: "100%",
@@ -150,27 +163,48 @@ export default function SurveyManagementPage() {
                   />
                 </CardContent>
                 <Divider />
-                <Box p={2} display="flex" justifyContent="space-between">
+                <Box
+                  p={2}
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  gap={1}
+                >
                   <IconButton
                     color="primary"
                     onClick={() => handleEdit(survey)}
                     title="Edit Survey"
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      minWidth: "auto",
+                    }}
                   >
-                    <EditIcon />
+                    <EditIcon fontSize="small" />
                   </IconButton>
                   <IconButton
                     color="info"
                     title="View Survey"
                     onClick={() => handleView(survey)}
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      minWidth: "auto",
+                    }}
                   >
-                    <ViewIcon />
+                    <ViewIcon fontSize="small" />
                   </IconButton>
                   <IconButton
                     color="error"
                     onClick={() => handleDelete(survey)}
                     title="Delete Survey"
+                    size="small"
+                    sx={{
+                      flex: 1,
+                      minWidth: "auto",
+                    }}
                   >
-                    <DeleteIcon />
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
               </Card>
