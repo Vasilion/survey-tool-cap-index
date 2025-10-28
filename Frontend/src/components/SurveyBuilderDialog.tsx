@@ -82,7 +82,7 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     setIsInitialized(false);
   }, [surveyId]);
 
-  const addQuestion = () => {
+  const addQuestion = (): void => {
     const newQuestion: QuestionUpsertDto = {
       text: "",
       type: QuestionType.SingleChoice,
@@ -92,17 +92,17 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     setQuestions([...questions, newQuestion]);
   };
 
-  const updateQuestion = (index: number, updated: QuestionUpsertDto) => {
+  const updateQuestion = (index: number, updated: QuestionUpsertDto): void => {
     const newQuestions = [...questions];
     newQuestions[index] = { ...updated, order: index };
     setQuestions(newQuestions);
   };
 
-  const deleteQuestion = (index: number) => {
+  const deleteQuestion = (index: number): void => {
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
-  const addOption = (questionIndex: number) => {
+  const addOption = (questionIndex: number): void => {
     const newQuestions = [...questions];
     newQuestions[questionIndex].options.push({ text: "", weight: 1 });
     setQuestions(newQuestions);
@@ -112,19 +112,19 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     questionIndex: number,
     optionIndex: number,
     updated: AnswerOptionUpsertDto
-  ) => {
+  ): void => {
     const newQuestions = [...questions];
     newQuestions[questionIndex].options[optionIndex] = updated;
     setQuestions(newQuestions);
   };
 
-  const deleteOption = (questionIndex: number, optionIndex: number) => {
+  const deleteOption = (questionIndex: number, optionIndex: number): void => {
     const newQuestions = [...questions];
     newQuestions[questionIndex].options.splice(optionIndex, 1);
     setQuestions(newQuestions);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     // Client-side validation
     if (!title.trim()) {
       alert("Please enter a survey title");

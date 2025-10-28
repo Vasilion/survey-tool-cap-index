@@ -62,17 +62,17 @@ export default function SurveyPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleIds.size]);
 
-  const handleChange = (q: QuestionDto, value: SubmitAnswerItem) => {
+  const handleChange = (q: QuestionDto, value: SubmitAnswerItem): void => {
     setAnswers((prev) => ({ ...prev, [q.id]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<void> => {
     if (!selectedSurveyId) return;
     const payload: SubmitResponseRequest = { answers: Object.values(answers) };
     await submit.mutateAsync(payload);
   };
 
-  const handleSurveyChange = (surveyId: string) => {
+  const handleSurveyChange = (surveyId: string): void => {
     setSelectedSurveyId(surveyId);
     setAnswers({});
   };

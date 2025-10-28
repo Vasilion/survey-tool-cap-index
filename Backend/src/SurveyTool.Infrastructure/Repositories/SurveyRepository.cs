@@ -25,16 +25,16 @@ namespace SurveyTool.Infrastructure.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var entity = await _db.Surveys
+            Survey? entity = await _db.Surveys
                 .Include(s => s.Questions)
                 .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (entity != null)
             {
                 // Remove all related entities first
-                foreach (var question in entity.Questions.ToList())
+                foreach (Question question in entity.Questions.ToList())
                 {
-                    foreach (var option in question.Options.ToList())
+                    foreach (AnswerOption option in question.Options.ToList())
                     {
                         _db.AnswerOptions.Remove(option);
                     }

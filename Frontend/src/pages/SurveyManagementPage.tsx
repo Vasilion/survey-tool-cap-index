@@ -37,12 +37,12 @@ export default function SurveyManagementPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
 
-  const handleDelete = async (survey: SurveySummaryDto) => {
+  const handleDelete = async (survey: SurveySummaryDto): Promise<void> => {
     setSelectedSurvey(survey);
     setShowDeleteDialog(true);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (): Promise<void> => {
     if (selectedSurvey) {
       await deleteSurvey.mutateAsync(selectedSurvey.id);
       setShowDeleteDialog(false);
@@ -50,17 +50,17 @@ export default function SurveyManagementPage() {
     }
   };
 
-  const handleEdit = (survey: SurveySummaryDto) => {
+  const handleEdit = (survey: SurveySummaryDto): void => {
     setSelectedSurvey(survey);
     setShowBuilder(true);
   };
 
-  const handleCreateNew = () => {
+  const handleCreateNew = (): void => {
     setSelectedSurvey(null);
     setShowBuilder(true);
   };
 
-  const handleView = (survey: SurveySummaryDto) => {
+  const handleView = (survey: SurveySummaryDto): void => {
     setSelectedSurvey(survey);
     setShowViewDialog(true);
   };

@@ -15,3 +15,4 @@ C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\Surve
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\refint\SurveyTool.Infrastructure.dll
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.pdb
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\ref\SurveyTool.Infrastructure.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Infrastructure\obj\Debug\net8.0\SurveyTool.Infrastructure.sourcelink.json

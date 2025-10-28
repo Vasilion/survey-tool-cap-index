@@ -22,17 +22,17 @@ namespace SurveyTool.Application.Services
 
         public async Task<Guid> CreateAsync(CreateSurveyRequest request)
         {
-            var survey = new Survey
+            Survey survey = new Survey
             {
                 Id = Guid.NewGuid(),
                 Title = request.Title,
                 Description = request.Description
             };
 
-            var questions = new List<Question>();
-            foreach (var q in request.Questions.OrderBy(x => x.Order))
+            List<Question> questions = new List<Question>();
+            foreach (QuestionUpsertDto q in request.Questions.OrderBy(x => x.Order))
             {
-                var question = new Question
+                Question question = new Question
                 {
                     Id = Guid.NewGuid(),
                     SurveyId = survey.Id,
@@ -48,7 +48,7 @@ namespace SurveyTool.Application.Services
                         }
                         : null
                 };
-                foreach (var opt in q.Options)
+                foreach (AnswerOptionUpsertDto opt in q.Options)
                 {
                     question.Options.Add(new AnswerOption
                     {
@@ -72,14 +72,14 @@ namespace SurveyTool.Application.Services
 
         public async Task<SurveyDto?> GetAsync(Guid id)
         {
-            var s = await _repo.GetByIdAsync(id);
+            Survey? s = await _repo.GetByIdAsync(id);
             if (s == null) return null;
             return MapSurvey(s);
         }
 
         public async Task<IReadOnlyList<SurveySummaryDto>> ListAsync()
         {
-            var list = await _repo.ListAsync();
+            IReadOnlyList<Survey> list = await _repo.ListAsync();
             return list.Select(x => new SurveySummaryDto { Id = x.Id, Title = x.Title }).ToList();
         }
 
@@ -89,17 +89,17 @@ namespace SurveyTool.Application.Services
             await _repo.DeleteAsync(id);
             
             // Create a new survey with the same ID
-            var survey = new Survey
+            Survey survey = new Survey
             {
                 Id = id, // Use the same ID
                 Title = request.Title,
                 Description = request.Description
             };
 
-            var questions = new List<Question>();
-            foreach (var q in request.Questions.OrderBy(x => x.Order))
+            List<Question> questions = new List<Question>();
+            foreach (QuestionUpsertDto q in request.Questions.OrderBy(x => x.Order))
             {
-                var question = new Question
+                Question question = new Question
                 {
                     Id = Guid.NewGuid(),
                     SurveyId = survey.Id,
@@ -115,7 +115,7 @@ namespace SurveyTool.Application.Services
                         }
                         : null
                 };
-                foreach (var opt in q.Options)
+                foreach (AnswerOptionUpsertDto opt in q.Options)
                 {
                     question.Options.Add(new AnswerOption
                     {
@@ -134,7 +134,7 @@ namespace SurveyTool.Application.Services
 
         private static SurveyDto MapSurvey(Survey s)
         {
-            var dto = new SurveyDto
+            SurveyDto dto = new SurveyDto
             {
                 Id = s.Id,
                 Title = s.Title,

@@ -52,3 +52,4 @@ C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\Surve
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Api\obj\Debug\net8.0\SurveyTool.Api.pdb
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Api\obj\Debug\net8.0\SurveyTool.Api.genruntimeconfig.cache
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Api\obj\Debug\net8.0\ref\SurveyTool.Api.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Api\obj\Debug\net8.0\SurveyTool.Api.sourcelink.json

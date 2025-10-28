@@ -20,12 +20,12 @@ namespace SurveyTool.Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var visibilityConverter = new ValueConverter<VisibilityRule?, string?>(
+            ValueConverter<VisibilityRule?, string?> visibilityConverter = new ValueConverter<VisibilityRule?, string?>(
                 v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => v == null ? null : JsonSerializer.Deserialize<VisibilityRule>(v, (JsonSerializerOptions?)null)
             );
 
-            var guidListConverter = new ValueConverter<List<Guid>, string>(
+            ValueConverter<List<Guid>, string> guidListConverter = new ValueConverter<List<Guid>, string>(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>()
             );

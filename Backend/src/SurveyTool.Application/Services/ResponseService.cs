@@ -24,30 +24,30 @@ namespace SurveyTool.Application.Services
 
         public async Task<SubmitResponseResult> SubmitAsync(Guid surveyId, SubmitResponseRequest request)
         {
-            var survey = await _surveys.GetByIdAsync(surveyId);
+            Survey? survey = await _surveys.GetByIdAsync(surveyId);
             if (survey == null) throw new NotFoundException("Survey not found");
 
-            var questionById = survey.Questions.ToDictionary(q => q.Id);
-            var answersByQuestionId = request.Answers.ToDictionary(a => a.QuestionId, a => a);
+            Dictionary<Guid, Question> questionById = survey.Questions.ToDictionary(q => q.Id);
+            Dictionary<Guid, SubmitAnswerItem> answersByQuestionId = request.Answers.ToDictionary(a => a.QuestionId, a => a);
 
-            foreach (var ans in request.Answers)
+            foreach (SubmitAnswerItem ans in request.Answers)
             {
                 if (!questionById.ContainsKey(ans.QuestionId))
                     throw new ValidationException("Answer references unknown question");
             }
 
-            var visibleQuestionIds = ComputeVisibleQuestionIds(survey, answersByQuestionId);
+            HashSet<Guid> visibleQuestionIds = ComputeVisibleQuestionIds(survey, answersByQuestionId);
 
-            foreach (var ans in request.Answers)
+            foreach (SubmitAnswerItem ans in request.Answers)
             {
                 if (!visibleQuestionIds.Contains(ans.QuestionId))
                     throw new ValidationException("Answer provided for hidden question");
 
-                var q = questionById[ans.QuestionId];
+                Question q = questionById[ans.QuestionId];
                 ValidateAnswerForType(q, ans);
             }
 
-            var response = new SurveyResponse
+            SurveyResponse response = new SurveyResponse
             {
                 Id = Guid.NewGuid(),
                 SurveyId = surveyId,
@@ -55,10 +55,10 @@ namespace SurveyTool.Application.Services
             };
 
             int total = 0;
-            foreach (var q in survey.Questions.OrderBy(x => x.Order))
+            foreach (Question q in survey.Questions.OrderBy(x => x.Order))
             {
                 if (!visibleQuestionIds.Contains(q.Id)) continue;
-                if (!answersByQuestionId.TryGetValue(q.Id, out var ans)) continue;
+                if (!answersByQuestionId.TryGetValue(q.Id, out SubmitAnswerItem? ans)) continue;
 
                 int itemScore = 0;
                 if (q.Type == QuestionType.FreeText)
@@ -67,15 +67,15 @@ namespace SurveyTool.Application.Services
                 }
                 else if (q.Type == QuestionType.SingleChoice)
                 {
-                    var optId = ans.SelectedOptionIds!.Single();
-                    var opt = q.Options.First(x => x.Id == optId);
+                    Guid optId = ans.SelectedOptionIds!.Single();
+                    AnswerOption opt = q.Options.First(x => x.Id == optId);
                     itemScore = opt.Weight;
                 }
                 else if (q.Type == QuestionType.MultipleChoice)
                 {
-                    foreach (var id in ans.SelectedOptionIds!)
+                    foreach (Guid id in ans.SelectedOptionIds!)
                     {
-                        var opt = q.Options.First(x => x.Id == id);
+                        AnswerOption opt = q.Options.First(x => x.Id == id);
                         itemScore += opt.Weight;
                     }
                 }
@@ -100,8 +100,8 @@ namespace SurveyTool.Application.Services
 
         private static HashSet<Guid> ComputeVisibleQuestionIds(Survey survey, Dictionary<Guid, SubmitAnswerItem> answers)
         {
-            var visible = new HashSet<Guid>();
-            foreach (var q in survey.Questions.OrderBy(x => x.Order))
+            HashSet<Guid> visible = new HashSet<Guid>();
+            foreach (Question q in survey.Questions.OrderBy(x => x.Order))
             {
                 if (q.ParentQuestionId == null)
                 {
@@ -114,12 +114,12 @@ namespace SurveyTool.Application.Services
                     continue;
                 }
 
-                if (!answers.TryGetValue(q.VisibilityRule.ParentQuestionId, out var parentAnswer))
+                if (!answers.TryGetValue(q.VisibilityRule.ParentQuestionId, out SubmitAnswerItem? parentAnswer))
                 {
                     continue;
                 }
 
-                var selected = parentAnswer.SelectedOptionIds ?? new List<Guid>();
+                List<Guid> selected = parentAnswer.SelectedOptionIds ?? new List<Guid>();
                 if (selected.Intersect(q.VisibilityRule.VisibleWhenSelectedOptionIds).Any())
                 {
                     visible.Add(q.Id);
@@ -140,8 +140,8 @@ namespace SurveyTool.Application.Services
             if (ans.SelectedOptionIds == null || ans.SelectedOptionIds.Count == 0)
                 throw new ValidationException("Choice question requires selected options");
 
-            var optionIdSet = new HashSet<Guid>(q.Options.Select(o => o.Id));
-            foreach (var id in ans.SelectedOptionIds)
+            HashSet<Guid> optionIdSet = new HashSet<Guid>(q.Options.Select(o => o.Id));
+            foreach (Guid id in ans.SelectedOptionIds)
             {
                 if (!optionIdSet.Contains(id)) throw new ValidationException("Answer references unknown option");
             }

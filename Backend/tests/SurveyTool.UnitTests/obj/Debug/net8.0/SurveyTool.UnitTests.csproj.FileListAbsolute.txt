@@ -104,3 +104,4 @@ C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\tests\Sur
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\tests\SurveyTool.UnitTests\obj\Debug\net8.0\SurveyTool.UnitTests.pdb
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\tests\SurveyTool.UnitTests\obj\Debug\net8.0\SurveyTool.UnitTests.genruntimeconfig.cache
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\tests\SurveyTool.UnitTests\obj\Debug\net8.0\ref\SurveyTool.UnitTests.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\tests\SurveyTool.UnitTests\obj\Debug\net8.0\SurveyTool.UnitTests.sourcelink.json

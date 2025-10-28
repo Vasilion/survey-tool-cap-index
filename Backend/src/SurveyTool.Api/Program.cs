@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
+using FluentValidation.Results;
 using SurveyTool.Infrastructure.Data;
 using SurveyTool.Infrastructure.Data.Seed;
 using SurveyTool.Infrastructure.Repositories;
@@ -14,7 +15,7 @@ using SurveyTool.Application.Contracts.Surveys;
 using SurveyTool.Application.Contracts.Responses;
 using AppValidationException = SurveyTool.Application.Common.Exceptions.ValidationException;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 builder.Services.AddEndpointsApiExplorer();
@@ -49,12 +50,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Initialize database with seed data
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<SurveyDbContext>();
+    SurveyDbContext context = scope.ServiceProvider.GetRequiredService<SurveyDbContext>();
     DatabaseInitializer.EnsureSeeded(context);
 }
 
@@ -84,7 +85,7 @@ app.Use(async (context, next) =>
         };
         
         context.Response.ContentType = "application/json";
-        var response = new { message = ex.Message };
+        object response = new { message = ex.Message };
         await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 });
@@ -92,7 +93,7 @@ app.Use(async (context, next) =>
 // Survey endpoints
 app.MapGet("/api/surveys", async (ISurveyService surveyService) =>
 {
-    var surveys = await surveyService.ListAsync();
+    IReadOnlyList<SurveySummaryDto> surveys = await surveyService.ListAsync();
     return Results.Ok(surveys);
 })
 .WithName("GetSurveys")
@@ -100,7 +101,7 @@ app.MapGet("/api/surveys", async (ISurveyService surveyService) =>
 
 app.MapGet("/api/surveys/{id:guid}", async (Guid id, ISurveyService surveyService) =>
 {
-    var survey = await surveyService.GetAsync(id);
+    SurveyDto? survey = await surveyService.GetAsync(id);
     return survey == null ? Results.NotFound() : Results.Ok(survey);
 })
 .WithName("GetSurvey")
@@ -108,7 +109,7 @@ app.MapGet("/api/surveys/{id:guid}", async (Guid id, ISurveyService surveyServic
 
 app.MapPost("/api/surveys", async (CreateSurveyRequest request, ISurveyService surveyService, IValidator<CreateSurveyRequest> validator) =>
 {
-        var validationResult = await validator.ValidateAsync(request);
+        ValidationResult validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
             return Results.BadRequest(validationResult.Errors.Select(e => new { 
@@ -118,7 +119,7 @@ app.MapPost("/api/surveys", async (CreateSurveyRequest request, ISurveyService s
             }));
         }
     
-    var id = await surveyService.CreateAsync(request);
+    Guid id = await surveyService.CreateAsync(request);
     return Results.Created($"/api/surveys/{id}", new { id });
 })
 .WithName("CreateSurvey")
@@ -126,7 +127,7 @@ app.MapPost("/api/surveys", async (CreateSurveyRequest request, ISurveyService s
 
 app.MapPut("/api/surveys/{id:guid}", async (Guid id, UpdateSurveyRequest request, ISurveyService surveyService, IValidator<UpdateSurveyRequest> validator) =>
 {
-    var validationResult = await validator.ValidateAsync(request);
+    ValidationResult validationResult = await validator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
         return Results.BadRequest(validationResult.Errors);
@@ -163,7 +164,7 @@ app.MapDelete("/api/surveys/{id:guid}", async (Guid id, ISurveyService surveySer
 // Response endpoints
 app.MapPost("/api/surveys/{surveyId:guid}/responses", async (Guid surveyId, SubmitResponseRequest request, IResponseService responseService, IValidator<SubmitResponseRequest> validator) =>
 {
-    var validationResult = await validator.ValidateAsync(request);
+    ValidationResult validationResult = await validator.ValidateAsync(request);
     if (!validationResult.IsValid)
     {
         return Results.BadRequest(validationResult.Errors);
@@ -171,7 +172,7 @@ app.MapPost("/api/surveys/{surveyId:guid}/responses", async (Guid surveyId, Subm
     
     try
     {
-        var result = await responseService.SubmitAsync(surveyId, request);
+        SubmitResponseResult result = await responseService.SubmitAsync(surveyId, request);
         return Results.Created($"/api/surveys/{surveyId}/responses/{result.ResponseId}", result);
     }
     catch (NotFoundException)

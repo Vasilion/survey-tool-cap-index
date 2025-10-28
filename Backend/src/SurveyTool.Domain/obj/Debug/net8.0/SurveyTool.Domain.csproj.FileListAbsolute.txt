@@ -9,3 +9,4 @@ C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\Surve
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Domain\obj\Debug\net8.0\refint\SurveyTool.Domain.dll
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Domain\obj\Debug\net8.0\SurveyTool.Domain.pdb
 C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Domain\obj\Debug\net8.0\ref\SurveyTool.Domain.dll
+C:\Users\lukev\OneDrive\Desktop\Projects\survey-tool-cap-index\Backend\src\SurveyTool.Domain\obj\Debug\net8.0\SurveyTool.Domain.sourcelink.json
