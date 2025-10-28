@@ -74,16 +74,7 @@ This project follows Clean Architecture principles with clear separation of conc
    npm install
    ```
 
-3. **Configure environment:**
-
-   - Create a `.env` file in the frontend folder with:
-
-   ```env
-   VITE_API_BASE_URL=http://localhost:5148
-   # VITE_SEEDED_SURVEY_ID=<guid>
-   ```
-
-4. **Start the development server:**
+3. **Start the development server:**
 
    ```bash
    npm run dev
