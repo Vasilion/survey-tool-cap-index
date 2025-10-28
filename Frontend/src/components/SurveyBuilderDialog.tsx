@@ -46,6 +46,11 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<QuestionUpsertDto[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [errors, setErrors] = useState<{
+    title?: string;
+    questions?: { [key: number]: { text?: string; options?: { [key: number]: string } } };
+  }>({});
+  const [apiError, setApiError] = useState<string>("");
 
   useEffect(() => {
     // Only initialize once per surveyId to prevent duplicate loading
@@ -124,33 +129,70 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     setQuestions(newQuestions);
   };
 
-  const handleSave = async (): Promise<void> => {
-    // Client-side validation
+  const validateForm = (): boolean => {
+    const newErrors: {
+      title?: string;
+      questions?: { [key: number]: { text?: string; options?: { [key: number]: string } } };
+    } = {};
+
+    // Validate title
     if (!title.trim()) {
-      alert("Please enter a survey title");
-      return;
+      newErrors.title = "Survey title is required";
     }
 
+    // Validate questions
+    const questionErrors: { [key: number]: { text?: string; options?: { [key: number]: string } } } = {};
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
+      const questionError: { text?: string; options?: { [key: number]: string } } = {};
+
+      // Validate question text
       if (!q.text.trim()) {
-        alert(`Please enter text for Question ${i + 1}`);
-        return;
+        questionError.text = "Question text is required";
       }
 
+      // Validate options for choice questions
       if (q.type !== QuestionType.FreeText) {
         if (!q.options || q.options.length === 0) {
-          alert(`Please add at least one option for Question ${i + 1}`);
-          return;
-        }
-
-        for (let j = 0; j < q.options.length; j++) {
-          if (!q.options[j].text.trim()) {
-            alert(`Please enter text for Option ${j + 1} in Question ${i + 1}`);
-            return;
+          questionError.text = "At least one option is required for choice questions";
+        } else {
+          const optionErrors: { [key: number]: string } = {};
+          for (let j = 0; j < q.options.length; j++) {
+            if (!q.options[j].text.trim()) {
+              optionErrors[j] = "Option text is required";
+            }
+          }
+          if (Object.keys(optionErrors).length > 0) {
+            questionError.options = optionErrors;
           }
         }
       }
+
+      if (Object.keys(questionError).length > 0) {
+        questionErrors[i] = questionError;
+      }
+    }
+
+    if (Object.keys(questionErrors).length > 0) {
+      newErrors.questions = questionErrors;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearErrors = (): void => {
+    setErrors({});
+    setApiError("");
+  };
+
+  const handleSave = async (): Promise<void> => {
+    // Clear previous errors
+    clearErrors();
+
+    // Client-side validation
+    if (!validateForm()) {
+      return;
     }
 
     const payload: CreateSurveyRequest | UpdateSurveyRequest = {
@@ -192,13 +234,13 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                   err.ErrorMessage || err.message || "Invalid data"
                 }`
             )
-            .join("\n");
-          alert(`Validation errors:\n${errorMessages}`);
+            .join(", ");
+          setApiError(`Validation errors: ${errorMessages}`);
         } else {
-          alert(`Error: ${errorData.message || "Failed to save survey"}`);
+          setApiError(`Error: ${errorData.message || "Failed to save survey"}`);
         }
       } else {
-        alert("Failed to save survey. Please try again.");
+        setApiError("Failed to save survey. Please try again.");
       }
     }
   };
@@ -238,15 +280,25 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
         {surveyId ? "Edit Survey" : "Create New Survey"}
       </DialogTitle>
       <DialogContent>
+        {apiError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {apiError}
+          </Alert>
+        )}
         <Box sx={{ mt: 2 }}>
-          <TextField
-            fullWidth
-            label="Survey Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            margin="normal"
-            required
-          />
+              <TextField
+                fullWidth
+                label="Survey Title"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (errors.title) clearErrors();
+                }}
+                margin="normal"
+                required
+                error={!!errors.title}
+                helperText={errors.title}
+              />
           <TextField
             fullWidth
             label="Description (Optional)"
@@ -305,19 +357,31 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                     </IconButton>
                   </Box>
 
-                  <TextField
-                    fullWidth
-                    label="Question Text"
-                    value={question.text}
-                    onChange={(e) =>
-                      updateQuestion(index, {
-                        ...question,
-                        text: e.target.value,
-                      })
-                    }
-                    margin="normal"
-                    required
-                  />
+                      <TextField
+                        fullWidth
+                        label="Question Text"
+                        value={question.text}
+                        onChange={(e) => {
+                          updateQuestion(index, {
+                            ...question,
+                            text: e.target.value,
+                          });
+                          if (errors.questions?.[index]?.text) {
+                            const newErrors = { ...errors };
+                            if (newErrors.questions?.[index]) {
+                              delete newErrors.questions[index].text;
+                              if (Object.keys(newErrors.questions[index]).length === 0) {
+                                delete newErrors.questions[index];
+                              }
+                            }
+                            setErrors(newErrors);
+                          }
+                        }}
+                        margin="normal"
+                        required
+                        error={!!errors.questions?.[index]?.text}
+                        helperText={errors.questions?.[index]?.text}
+                      />
 
                   <FormControl fullWidth margin="normal">
                     <InputLabel>Question Type</InputLabel>
@@ -376,20 +440,35 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                           mb={1}
                           flexDirection={{ xs: "column", sm: "row" }}
                         >
-                          <TextField
-                            fullWidth
-                            label={`Option ${optionIndex + 1}`}
-                            value={option.text}
-                            onChange={(e) =>
-                              updateOption(index, optionIndex, {
-                                ...option,
-                                text: e.target.value,
-                              })
-                            }
-                            size="small"
-                            required
-                            sx={{ mb: { xs: 1, sm: 0 } }}
-                          />
+                              <TextField
+                                fullWidth
+                                label={`Option ${optionIndex + 1}`}
+                                value={option.text}
+                                onChange={(e) => {
+                                  updateOption(index, optionIndex, {
+                                    ...option,
+                                    text: e.target.value,
+                                  });
+                                  if (errors.questions?.[index]?.options?.[optionIndex]) {
+                                    const newErrors = { ...errors };
+                                    if (newErrors.questions?.[index]?.options) {
+                                      delete newErrors.questions[index].options![optionIndex];
+                                      if (Object.keys(newErrors.questions[index].options!).length === 0) {
+                                        delete newErrors.questions[index].options;
+                                        if (Object.keys(newErrors.questions[index]).length === 0) {
+                                          delete newErrors.questions[index];
+                                        }
+                                      }
+                                    }
+                                    setErrors(newErrors);
+                                  }
+                                }}
+                                size="small"
+                                required
+                                error={!!errors.questions?.[index]?.options?.[optionIndex]}
+                                helperText={errors.questions?.[index]?.options?.[optionIndex]}
+                                sx={{ mb: { xs: 1, sm: 0 } }}
+                              />
                           <Box
                             display="flex"
                             alignItems="center"
