@@ -55,10 +55,10 @@ This project follows Clean Architecture principles with clear separation of conc
    dotnet run --project .\src\SurveyTool.Api\SurveyTool.Api.csproj
    ```
 
-   The API will be available at: `https://localhost:7000` or `http://localhost:5000`
+   The API will be available at: `https://localhost:7000` or `http://localhost:5148`
 
 5. **View API Documentation:**
-   - Swagger UI: `https://localhost:7000/swagger` (HTTPS) or `http://localhost:5000/swagger` (HTTP)
+   - Swagger UI: `https://localhost:7000/swagger` (HTTPS) or `http://localhost:5148/swagger` (HTTP)
 
 ### Frontend Setup
 
@@ -74,13 +74,24 @@ This project follows Clean Architecture principles with clear separation of conc
    npm install
    ```
 
-3. **Start the development server:**
+3. **Configure environment:**
+   - Create a `.env` file in the frontend folder with:
+   ```env
+   VITE_API_BASE_URL=http://localhost:5148
+   # VITE_SEEDED_SURVEY_ID=<guid>
+   ```
+
+4. **Start the development server:**
 
    ```bash
    npm run dev
    ```
 
    The frontend will be available at: `http://localhost:5173`
+
+   **Note:** Make sure the backend is running on port 5148 for the frontend to connect properly.
+
+   This uses React Query for API calls and Material UI for components.
 
 ## 🗄️ Database Schema (ERD)
 
