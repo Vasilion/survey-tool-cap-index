@@ -10,7 +10,7 @@ erDiagram
     Survey {
       guid Id PK
       string Title
-      string Description
+      string Description nullable
     }
     Question {
       guid Id PK
@@ -37,8 +37,42 @@ erDiagram
       guid Id PK
       guid SurveyResponseId FK
       guid QuestionId FK
-      string SelectedOptionIdsCsv nullable
+      string SelectedOptionIdsJson nullable
       string FreeText nullable
       int ItemScore
     }
+    VisibilityRule {
+      guid ParentQuestionId
+      string VisibleWhenSelectedOptionIdsJson
+    }
 ```
+
+## Data Model Details
+
+### JSON Fields
+
+**VisibilityRuleJson (Question table)**
+
+- Stores a JSON serialized `VisibilityRule` object
+- Contains `ParentQuestionId` and `VisibleWhenSelectedOptionIds` array
+- Used for conditional question display logic
+
+**SelectedOptionIdsJson (ResponseItem table)**
+
+- Stores a JSON serialized array of `Guid` values
+- Represents the selected answer option IDs for choice questions
+- Empty array for free text questions
+
+### Relationships
+
+- **Survey → Questions**: One-to-many with cascade delete
+- **Question → AnswerOptions**: One-to-many with cascade delete
+- **Survey → SurveyResponses**: One-to-many with cascade delete
+- **SurveyResponse → ResponseItems**: One-to-many with cascade delete
+- **Question → ResponseItems**: One-to-many (answers reference questions)
+- **Question → Question**: Self-referencing for conditional logic (ParentQuestionId)
+
+### Indexes
+
+- Composite index on `(SurveyId, Order)` for efficient question ordering
+- Primary keys on all entities for fast lookups
