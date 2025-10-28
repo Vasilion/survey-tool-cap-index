@@ -75,7 +75,9 @@ This project follows Clean Architecture principles with clear separation of conc
    ```
 
 3. **Configure environment:**
+
    - Create a `.env` file in the frontend folder with:
+
    ```env
    VITE_API_BASE_URL=http://localhost:5148
    # VITE_SEEDED_SURVEY_ID=<guid>
