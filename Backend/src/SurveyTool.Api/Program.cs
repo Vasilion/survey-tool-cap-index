@@ -108,16 +108,15 @@ app.MapGet("/api/surveys/{id:guid}", async (Guid id, ISurveyService surveyServic
 
 app.MapPost("/api/surveys", async (CreateSurveyRequest request, ISurveyService surveyService, IValidator<CreateSurveyRequest> validator) =>
 {
-    var validationResult = await validator.ValidateAsync(request);
-    if (!validationResult.IsValid)
-    {
-        Console.WriteLine($"Validation failed: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
-        return Results.BadRequest(validationResult.Errors.Select(e => new { 
-            PropertyName = e.PropertyName, 
-            ErrorMessage = e.ErrorMessage,
-            AttemptedValue = e.AttemptedValue 
-        }));
-    }
+        var validationResult = await validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            return Results.BadRequest(validationResult.Errors.Select(e => new { 
+                PropertyName = e.PropertyName, 
+                ErrorMessage = e.ErrorMessage,
+                AttemptedValue = e.AttemptedValue 
+            }));
+        }
     
     var id = await surveyService.CreateAsync(request);
     return Results.Created($"/api/surveys/{id}", new { id });

@@ -11,26 +11,17 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  FormControlLabel,
-  FormLabel,
-  Grid,
   IconButton,
   InputLabel,
   MenuItem,
-  Radio,
-  RadioGroup,
   Select,
   TextField,
   Typography,
-  Chip,
-  Divider,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Save as SaveIcon,
-  Close as CloseIcon,
-  DragIndicator as DragIcon,
 } from "@mui/icons-material";
 import { useSurvey, useCreateSurvey, useUpdateSurvey } from "@/api/surveys";
 import {
@@ -61,7 +52,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     if (isInitialized) return;
 
     if (existingSurvey) {
-      console.log("Loading existing survey data:", existingSurvey);
       setTitle(existingSurvey.title);
       setDescription(existingSurvey.description || "");
       setQuestions(
@@ -89,10 +79,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
 
   // Reset initialization when surveyId changes
   useEffect(() => {
-    console.log(
-      "SurveyBuilderDialog mounted/remounted for surveyId:",
-      surveyId
-    );
     setIsInitialized(false);
   }, [surveyId]);
 
@@ -183,8 +169,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       })),
     };
 
-    console.log("Sending payload:", JSON.stringify(payload, null, 2));
-
     try {
       if (surveyId) {
         await updateSurvey.mutateAsync({
@@ -196,12 +180,9 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       }
       onClose();
     } catch (error: any) {
-      console.error("Failed to save survey:", error);
-
       // Show more detailed error message
       if (error?.response?.data) {
         const errorData = error.response.data;
-        console.log("Error response data:", errorData);
 
         if (Array.isArray(errorData) && errorData.length > 0) {
           const errorMessages = errorData

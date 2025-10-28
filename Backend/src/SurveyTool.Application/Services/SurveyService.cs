@@ -85,12 +85,8 @@ namespace SurveyTool.Application.Services
 
         public async Task UpdateAsync(Guid id, UpdateSurveyRequest request)
         {
-            Console.WriteLine($"Attempting to update survey with ID: {id}");
-            Console.WriteLine($"Request contains {request.Questions.Count} questions");
-            
             // Delete the existing survey
             await _repo.DeleteAsync(id);
-            Console.WriteLine("Deleted existing survey and all related data");
             
             // Create a new survey with the same ID
             var survey = new Survey
@@ -133,13 +129,7 @@ namespace SurveyTool.Application.Services
             }
             survey.Questions = questions;
             
-            Console.WriteLine($"Creating new survey with {questions.Count} questions");
             await _repo.AddAsync(survey);
-            Console.WriteLine("Survey updated successfully");
-            
-            // Verify what was actually saved
-            var savedSurvey = await _repo.GetByIdAsync(id);
-            Console.WriteLine($"Verification: Saved survey has {savedSurvey?.Questions.Count ?? 0} questions");
         }
 
         private static SurveyDto MapSurvey(Survey s)

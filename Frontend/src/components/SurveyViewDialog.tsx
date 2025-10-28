@@ -9,7 +9,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider,
   Alert,
 } from "@mui/material";
 import { QuestionType } from "@/types";
