@@ -6,26 +6,39 @@ export function computeVisibleQuestionIds(
 ): Set<string> {
   const visible = new Set<string>();
   const ordered = [...questions].sort((a, b) => a.order - b.order);
+
   for (const q of ordered) {
     if (!q.parentQuestionId) {
       visible.add(q.id);
       continue;
     }
+
     if (
       !q.visibleWhenSelectedOptionIds ||
       q.visibleWhenSelectedOptionIds.length === 0
-    )
+    ) {
       continue;
+    }
+
     const parentAns = answers[q.parentQuestionId];
+    if (!parentAns) {
+      continue;
+    }
+
     if (
-      !parentAns ||
       !parentAns.selectedOptionIds ||
       parentAns.selectedOptionIds.length === 0
-    )
+    ) {
       continue;
+    }
+
     const set = new Set(parentAns.selectedOptionIds);
-    if (q.visibleWhenSelectedOptionIds.some((id) => set.has(id)))
+    const matches = q.visibleWhenSelectedOptionIds.some((id) => set.has(id));
+
+    if (matches) {
       visible.add(q.id);
+    }
   }
+
   return visible;
 }

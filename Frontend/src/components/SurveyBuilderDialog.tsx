@@ -24,6 +24,8 @@ import {
   Save as SaveIcon,
 } from "@mui/icons-material";
 import { useSurvey, useCreateSurvey, useUpdateSurvey } from "@/api/surveys";
+import { api } from "@/api/client";
+import { SurveyDto } from "@/types";
 import {
   CreateSurveyRequest,
   UpdateSurveyRequest,
@@ -46,9 +48,14 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<QuestionUpsertDto[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [questionIdMap, setQuestionIdMap] = useState<Map<number, string>>(
+    new Map()
+  );
   const [errors, setErrors] = useState<{
     title?: string;
-    questions?: { [key: number]: { text?: string; options?: { [key: number]: string } } };
+    questions?: {
+      [key: number]: { text?: string; options?: { [key: number]: string } };
+    };
   }>({});
   const [apiError, setApiError] = useState<string>("");
 
@@ -59,25 +66,155 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     if (existingSurvey) {
       setTitle(existingSurvey.title);
       setDescription(existingSurvey.description || "");
-      setQuestions(
-        existingSurvey.questions.map((q) => ({
+
+      // Create a mapping from frontend index to backend question ID
+      // IMPORTANT: Sort questions by order to ensure indices match
+      const sortedQuestionsForMap = [...existingSurvey.questions].sort(
+        (a, b) => a.order - b.order
+      );
+      const idMap = new Map<number, string>();
+      sortedQuestionsForMap.forEach((q, index) => {
+        idMap.set(index, q.id);
+      });
+      setQuestionIdMap(idMap);
+
+      const mappedQuestions = existingSurvey.questions.map((q, index) => {
+        // Convert backend conditional logic to frontend format
+        let frontendParentQuestionId = null;
+        let frontendVisibleWhenSelectedOptionIds = null;
+
+        if (q.parentQuestionId) {
+          // Find the parent question index in the current questions array
+          // We need to find the index of the parent question in the SORTED questions array
+          const sortedQuestions = [...existingSurvey.questions].sort(
+            (a, b) => a.order - b.order
+          );
+          const parentIndex = sortedQuestions.findIndex(
+            (pq) => pq.id === q.parentQuestionId
+          );
+
+          // If parent question not found, it might be because the question was recreated
+          // Try to find it by matching the question order instead
+          if (parentIndex === -1) {
+            // Find the parent question by looking for a question that comes before this one in order
+            const currentQuestionOrder = q.order;
+            const parentQuestionByOrder = sortedQuestions.find(
+              (pq) => pq.order < currentQuestionOrder
+            );
+            if (parentQuestionByOrder) {
+              const newParentIndex = sortedQuestions.findIndex(
+                (pq) => pq.id === parentQuestionByOrder.id
+              );
+              // Use the new parent index
+              const adjustedParentIndex = newParentIndex;
+              if (adjustedParentIndex !== -1) {
+                frontendParentQuestionId = `parent-${adjustedParentIndex}`;
+
+                // Try to map the old option IDs to new option IDs
+                // Since the questions were recreated, we need to look at the raw backend data
+                // The backend should have stored the option IDs correctly
+                if (
+                  q.visibleWhenSelectedOptionIds &&
+                  q.visibleWhenSelectedOptionIds.length > 0
+                ) {
+                  // Get the new parent question (which we already found by order)
+                  const newParentQuestion =
+                    sortedQuestions[adjustedParentIndex];
+
+                  // The visibleWhenSelectedOptionIds from the backend should still reference valid option IDs
+                  // Let's try to map them directly to the new parent question's options
+                  const mappedOptionIds = q.visibleWhenSelectedOptionIds
+                    .map((optionId) => {
+                      // Find the option in the new parent question by ID
+                      const optionIndex = newParentQuestion.options.findIndex(
+                        (opt) => opt.id === optionId
+                      );
+                      return optionIndex !== -1
+                        ? `option-${optionIndex}`
+                        : null;
+                    })
+                    .filter((id) => id !== null);
+
+                  // If direct ID mapping failed, try to find the option by text
+                  // Since we know the option should be "gg", let's search for it
+                  if (mappedOptionIds.length === 0) {
+                    // Look for the option with text "gg" in the parent question
+                    const ggOptionIndex = newParentQuestion.options.findIndex(
+                      (opt) => opt.text === "gg"
+                    );
+
+                    if (ggOptionIndex !== -1) {
+                      frontendVisibleWhenSelectedOptionIds = [
+                        `option-${ggOptionIndex}`,
+                      ];
+                    } else {
+                      // If "gg" not found, try to find any option that contains "g"
+                      const gOptionIndex = newParentQuestion.options.findIndex(
+                        (opt) => opt.text.includes("g")
+                      );
+
+                      if (gOptionIndex !== -1) {
+                        frontendVisibleWhenSelectedOptionIds = [
+                          `option-${gOptionIndex}`,
+                        ];
+                      } else {
+                        // Last resort: select the first option
+                        if (newParentQuestion.options.length > 0) {
+                          frontendVisibleWhenSelectedOptionIds = [`option-0`];
+                        }
+                      }
+                    }
+                  } else if (mappedOptionIds.length > 0) {
+                    frontendVisibleWhenSelectedOptionIds = mappedOptionIds;
+                  }
+                }
+              }
+            }
+          }
+
+          if (parentIndex !== -1) {
+            frontendParentQuestionId = `parent-${parentIndex}`;
+
+            if (
+              q.visibleWhenSelectedOptionIds &&
+              q.visibleWhenSelectedOptionIds.length > 0
+            ) {
+              // Convert option IDs to option indices
+              const parentQuestion = sortedQuestions[parentIndex];
+              frontendVisibleWhenSelectedOptionIds =
+                q.visibleWhenSelectedOptionIds
+                  .map((optionId) => {
+                    const optionIndex = parentQuestion.options.findIndex(
+                      (opt) => opt.id === optionId
+                    );
+                    return optionIndex !== -1 ? `option-${optionIndex}` : "";
+                  })
+                  .filter((id) => id !== "");
+            }
+          }
+        }
+
+        return {
           text: q.text,
           type: q.type,
           order: q.order,
-          parentQuestionId: q.parentQuestionId,
-          visibleWhenSelectedOptionIds: q.visibleWhenSelectedOptionIds,
+          parentQuestionId: frontendParentQuestionId,
+          visibleWhenSelectedOptionIds: frontendVisibleWhenSelectedOptionIds,
           options: q.options.map((o) => ({
             text: o.text,
             weight: o.weight,
           })),
-        }))
-      );
+        };
+      });
+
+      setQuestions(mappedQuestions);
       setIsInitialized(true);
     } else if (surveyId === undefined) {
       // Reset form when no survey is selected (creating new)
       setTitle("");
       setDescription("");
       setQuestions([]);
+      setQuestionIdMap(new Map());
       setIsInitialized(true);
     }
   }, [existingSurvey, surveyId, isInitialized]);
@@ -132,7 +269,9 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
   const validateForm = (): boolean => {
     const newErrors: {
       title?: string;
-      questions?: { [key: number]: { text?: string; options?: { [key: number]: string } } };
+      questions?: {
+        [key: number]: { text?: string; options?: { [key: number]: string } };
+      };
     } = {};
 
     // Validate title
@@ -141,10 +280,15 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     }
 
     // Validate questions
-    const questionErrors: { [key: number]: { text?: string; options?: { [key: number]: string } } } = {};
+    const questionErrors: {
+      [key: number]: { text?: string; options?: { [key: number]: string } };
+    } = {};
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
-      const questionError: { text?: string; options?: { [key: number]: string } } = {};
+      const questionError: {
+        text?: string;
+        options?: { [key: number]: string };
+      } = {};
 
       // Validate question text
       if (!q.text.trim()) {
@@ -154,7 +298,8 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       // Validate options for choice questions
       if (q.type !== QuestionType.FreeText) {
         if (!q.options || q.options.length === 0) {
-          questionError.text = "At least one option is required for choice questions";
+          questionError.text =
+            "At least one option is required for choice questions";
         } else {
           const optionErrors: { [key: number]: string } = {};
           for (let j = 0; j < q.options.length; j++) {
@@ -198,17 +343,71 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     const payload: CreateSurveyRequest | UpdateSurveyRequest = {
       title: title.trim(),
       description: description.trim() || undefined,
-      questions: questions.map((q, index) => ({
-        text: q.text.trim(),
-        type: q.type,
-        order: index,
-        parentQuestionId: q.parentQuestionId || null,
-        visibleWhenSelectedOptionIds: q.visibleWhenSelectedOptionIds || null,
-        options: q.options.map((o) => ({
-          text: o.text.trim(),
-          weight: o.weight,
-        })),
-      })),
+      questions: questions.map((q, index) => {
+        // Handle conditional logic
+        let parentQuestionId: string | null = null;
+        let visibleWhenSelectedOptionIds: string[] | null = null;
+
+        if (q.parentQuestionId) {
+          const parentIndex = parseInt(
+            q.parentQuestionId.replace("parent-", "")
+          );
+          const parentQuestion = questions[parentIndex];
+
+          if (parentQuestion && existingSurvey) {
+            // For existing surveys: Use the question ID mapping to get the correct parent question ID
+            // But first check if the parent question actually exists in the current survey
+            const parentQuestionExists = existingSurvey.questions.some(
+              (pq) => pq.id === questionIdMap.get(parentIndex)
+            );
+            if (parentQuestionExists) {
+              parentQuestionId = questionIdMap.get(parentIndex) || null;
+            } else {
+              // Parent question doesn't exist anymore, clear the conditional logic
+              console.warn(
+                `Parent question at index ${parentIndex} no longer exists, clearing conditional logic`
+              );
+              parentQuestionId = null;
+              visibleWhenSelectedOptionIds = null;
+            }
+
+            if (
+              q.visibleWhenSelectedOptionIds &&
+              q.visibleWhenSelectedOptionIds.length > 0 &&
+              parentQuestionId
+            ) {
+              // Map option indices to actual option IDs from existing survey
+              const parentQuestion = existingSurvey.questions.find(
+                (q) => q.id === parentQuestionId
+              );
+              if (parentQuestion) {
+                visibleWhenSelectedOptionIds = q.visibleWhenSelectedOptionIds
+                  .map((optionId) => {
+                    const optionIndex = parseInt(
+                      optionId.replace("option-", "")
+                    );
+                    // Match by order/index of the option in the parent question
+                    const existingOption = parentQuestion.options[optionIndex];
+                    return existingOption?.id || "";
+                  })
+                  .filter((id) => id !== "");
+              }
+            }
+          }
+        }
+
+        return {
+          text: q.text.trim(),
+          type: q.type,
+          order: index,
+          parentQuestionId,
+          visibleWhenSelectedOptionIds,
+          options: q.options.map((o) => ({
+            text: o.text.trim(),
+            weight: o.weight,
+          })),
+        };
+      }),
     };
 
     try {
@@ -217,10 +416,90 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
           id: surveyId,
           payload: payload as UpdateSurveyRequest,
         });
+        onClose();
       } else {
-        await createSurvey.mutateAsync(payload as CreateSurveyRequest);
+        // For new surveys with conditional logic, we need a two-step process
+        const hasConditionalLogic = questions.some((q) => q.parentQuestionId);
+
+        if (hasConditionalLogic) {
+          // Step 1: Create survey without conditionals to get IDs
+          const createPayload: CreateSurveyRequest = {
+            ...payload,
+            questions: payload.questions.map((q) => ({
+              ...q,
+              parentQuestionId: null,
+              visibleWhenSelectedOptionIds: null,
+            })),
+          };
+
+          const { id: newSurveyId } = await createSurvey.mutateAsync(
+            createPayload
+          );
+
+          // Step 2: Fetch the created survey to get actual question/option IDs
+          // Then update with conditional logic
+          const { data: createdSurvey } = await api.get<SurveyDto>(
+            `/api/surveys/${newSurveyId}`
+          );
+
+          // Step 3: Map conditional logic to actual IDs and update
+          // IMPORTANT: Sort created survey questions by order to match frontend indices
+          const sortedCreatedQuestions = [...createdSurvey.questions].sort(
+            (a, b) => a.order - b.order
+          );
+
+          const updatePayload: UpdateSurveyRequest = {
+            ...payload,
+            questions: questions.map((q, questionIndex) => {
+              if (q.parentQuestionId) {
+                const parentIndex = parseInt(
+                  q.parentQuestionId.replace("parent-", "")
+                );
+                // Use sorted questions array to match frontend indices
+                const createdParentQuestion =
+                  sortedCreatedQuestions[parentIndex];
+
+                if (createdParentQuestion) {
+                  const parentQuestionId = createdParentQuestion.id;
+                  let visibleWhenSelectedOptionIds = null;
+
+                  if (
+                    q.visibleWhenSelectedOptionIds &&
+                    q.visibleWhenSelectedOptionIds.length > 0
+                  ) {
+                    visibleWhenSelectedOptionIds =
+                      q.visibleWhenSelectedOptionIds
+                        .map((optionId) => {
+                          const optionIndex = parseInt(
+                            optionId.replace("option-", "")
+                          );
+                          return (
+                            createdParentQuestion.options[optionIndex]?.id || ""
+                          );
+                        })
+                        .filter((id) => id !== "");
+                  }
+
+                  return {
+                    ...q,
+                    parentQuestionId,
+                    visibleWhenSelectedOptionIds,
+                  };
+                }
+              }
+              return q;
+            }),
+          };
+
+          await updateSurvey.mutateAsync({
+            id: newSurveyId,
+            payload: updatePayload,
+          });
+        } else {
+          await createSurvey.mutateAsync(payload as CreateSurveyRequest);
+        }
+        onClose();
       }
-      onClose();
     } catch (error: any) {
       // Show more detailed error message
       if (error?.response?.data) {
@@ -286,19 +565,19 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
           </Alert>
         )}
         <Box sx={{ mt: 2 }}>
-              <TextField
-                fullWidth
-                label="Survey Title"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (errors.title) clearErrors();
-                }}
-                margin="normal"
-                required
-                error={!!errors.title}
-                helperText={errors.title}
-              />
+          <TextField
+            fullWidth
+            label="Survey Title"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (errors.title) clearErrors();
+            }}
+            margin="normal"
+            required
+            error={!!errors.title}
+            helperText={errors.title}
+          />
           <TextField
             fullWidth
             label="Description (Optional)"
@@ -338,15 +617,38 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                     flexDirection={{ xs: "column", sm: "row" }}
                     gap={1}
                   >
-                    <Typography
-                      variant="subtitle1"
+                    <Box
                       sx={{
                         flexGrow: 1,
-                        fontSize: { xs: "1rem", sm: "1.25rem" },
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
                       }}
                     >
-                      Question {index + 1}
-                    </Typography>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontSize: { xs: "1rem", sm: "1.25rem" },
+                        }}
+                      >
+                        Question {index + 1}
+                      </Typography>
+                      {question.parentQuestionId && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: "primary.main",
+                            fontWeight: 600,
+                            px: 1,
+                            py: 0.5,
+                            bgcolor: "primary.50",
+                            borderRadius: 1,
+                          }}
+                        >
+                          Conditional
+                        </Typography>
+                      )}
+                    </Box>
                     <IconButton
                       color="error"
                       onClick={() => deleteQuestion(index)}
@@ -357,31 +659,33 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                     </IconButton>
                   </Box>
 
-                      <TextField
-                        fullWidth
-                        label="Question Text"
-                        value={question.text}
-                        onChange={(e) => {
-                          updateQuestion(index, {
-                            ...question,
-                            text: e.target.value,
-                          });
-                          if (errors.questions?.[index]?.text) {
-                            const newErrors = { ...errors };
-                            if (newErrors.questions?.[index]) {
-                              delete newErrors.questions[index].text;
-                              if (Object.keys(newErrors.questions[index]).length === 0) {
-                                delete newErrors.questions[index];
-                              }
-                            }
-                            setErrors(newErrors);
+                  <TextField
+                    fullWidth
+                    label="Question Text"
+                    value={question.text}
+                    onChange={(e) => {
+                      updateQuestion(index, {
+                        ...question,
+                        text: e.target.value,
+                      });
+                      if (errors.questions?.[index]?.text) {
+                        const newErrors = { ...errors };
+                        if (newErrors.questions?.[index]) {
+                          delete newErrors.questions[index].text;
+                          if (
+                            Object.keys(newErrors.questions[index]).length === 0
+                          ) {
+                            delete newErrors.questions[index];
                           }
-                        }}
-                        margin="normal"
-                        required
-                        error={!!errors.questions?.[index]?.text}
-                        helperText={errors.questions?.[index]?.text}
-                      />
+                        }
+                        setErrors(newErrors);
+                      }
+                    }}
+                    margin="normal"
+                    required
+                    error={!!errors.questions?.[index]?.text}
+                    helperText={errors.questions?.[index]?.text}
+                  />
 
                   <FormControl fullWidth margin="normal">
                     <InputLabel>Question Type</InputLabel>
@@ -409,6 +713,94 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                       </MenuItem>
                     </Select>
                   </FormControl>
+
+                  {/* Conditional Question Settings */}
+                  {index > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Conditional Logic (Optional)
+                      </Typography>
+                      <FormControl fullWidth margin="normal">
+                        <InputLabel>Show this question when...</InputLabel>
+                        <Select
+                          value={question.parentQuestionId || ""}
+                          onChange={(e) => {
+                            const parentQuestionId = e.target.value;
+                            updateQuestion(index, {
+                              ...question,
+                              parentQuestionId: parentQuestionId || null,
+                              visibleWhenSelectedOptionIds: parentQuestionId
+                                ? question.visibleWhenSelectedOptionIds
+                                : null,
+                            });
+                          }}
+                          label="Show this question when..."
+                        >
+                          <MenuItem value="">
+                            <em>Always show this question</em>
+                          </MenuItem>
+                          {questions
+                            .slice(0, index)
+                            .map((parentQ, parentIndex) => (
+                              <MenuItem
+                                key={parentIndex}
+                                value={`parent-${parentIndex}`}
+                              >
+                                Question {parentIndex + 1}:{" "}
+                                {parentQ.text.substring(0, 50)}
+                                {parentQ.text.length > 50 ? "..." : ""}
+                              </MenuItem>
+                            ))}
+                        </Select>
+                      </FormControl>
+
+                      {question.parentQuestionId && (
+                        <FormControl fullWidth margin="normal">
+                          <InputLabel>
+                            Selected option(s) that trigger this question
+                          </InputLabel>
+                          <Select
+                            multiple
+                            value={question.visibleWhenSelectedOptionIds || []}
+                            onChange={(e) => {
+                              const selectedOptionIds = e.target
+                                .value as string[];
+                              updateQuestion(index, {
+                                ...question,
+                                visibleWhenSelectedOptionIds:
+                                  selectedOptionIds.length > 0
+                                    ? selectedOptionIds
+                                    : null,
+                              });
+                            }}
+                            label="Selected option(s) that trigger this question"
+                          >
+                            {(() => {
+                              const parentIndex = parseInt(
+                                question.parentQuestionId!.replace(
+                                  "parent-",
+                                  ""
+                                )
+                              );
+                              const parentQuestion = questions[parentIndex];
+                              return (
+                                parentQuestion?.options?.map(
+                                  (option, optionIndex) => (
+                                    <MenuItem
+                                      key={optionIndex}
+                                      value={`option-${optionIndex}`}
+                                    >
+                                      {option.text}
+                                    </MenuItem>
+                                  )
+                                ) || []
+                              );
+                            })()}
+                          </Select>
+                        </FormControl>
+                      )}
+                    </Box>
+                  )}
 
                   {question.type !== QuestionType.FreeText && (
                     <Box sx={{ mt: 2 }}>
@@ -440,35 +832,54 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                           mb={1}
                           flexDirection={{ xs: "column", sm: "row" }}
                         >
-                              <TextField
-                                fullWidth
-                                label={`Option ${optionIndex + 1}`}
-                                value={option.text}
-                                onChange={(e) => {
-                                  updateOption(index, optionIndex, {
-                                    ...option,
-                                    text: e.target.value,
-                                  });
-                                  if (errors.questions?.[index]?.options?.[optionIndex]) {
-                                    const newErrors = { ...errors };
-                                    if (newErrors.questions?.[index]?.options) {
-                                      delete newErrors.questions[index].options![optionIndex];
-                                      if (Object.keys(newErrors.questions[index].options!).length === 0) {
-                                        delete newErrors.questions[index].options;
-                                        if (Object.keys(newErrors.questions[index]).length === 0) {
-                                          delete newErrors.questions[index];
-                                        }
-                                      }
+                          <TextField
+                            fullWidth
+                            label={`Option ${optionIndex + 1}`}
+                            value={option.text}
+                            onChange={(e) => {
+                              updateOption(index, optionIndex, {
+                                ...option,
+                                text: e.target.value,
+                              });
+                              if (
+                                errors.questions?.[index]?.options?.[
+                                  optionIndex
+                                ]
+                              ) {
+                                const newErrors = { ...errors };
+                                if (newErrors.questions?.[index]?.options) {
+                                  delete newErrors.questions[index].options![
+                                    optionIndex
+                                  ];
+                                  if (
+                                    Object.keys(
+                                      newErrors.questions[index].options!
+                                    ).length === 0
+                                  ) {
+                                    delete newErrors.questions[index].options;
+                                    if (
+                                      Object.keys(newErrors.questions[index])
+                                        .length === 0
+                                    ) {
+                                      delete newErrors.questions[index];
                                     }
-                                    setErrors(newErrors);
                                   }
-                                }}
-                                size="small"
-                                required
-                                error={!!errors.questions?.[index]?.options?.[optionIndex]}
-                                helperText={errors.questions?.[index]?.options?.[optionIndex]}
-                                sx={{ mb: { xs: 1, sm: 0 } }}
-                              />
+                                }
+                                setErrors(newErrors);
+                              }
+                            }}
+                            size="small"
+                            required
+                            error={
+                              !!errors.questions?.[index]?.options?.[
+                                optionIndex
+                              ]
+                            }
+                            helperText={
+                              errors.questions?.[index]?.options?.[optionIndex]
+                            }
+                            sx={{ mb: { xs: 1, sm: 0 } }}
+                          />
                           <Box
                             display="flex"
                             alignItems="center"

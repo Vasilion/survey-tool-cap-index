@@ -33,13 +33,11 @@ export default function SurveyPage() {
   const submit = useSubmitResponse(selectedSurveyId);
 
   const [answers, setAnswers] = useState<Record<string, SubmitAnswerItem>>({});
-  const visibleIds = useMemo(
-    () =>
-      survey
-        ? computeVisibleQuestionIds(survey.questions, answers)
-        : new Set<string>(),
-    [survey, answers]
-  );
+  const visibleIds = useMemo(() => {
+    if (!survey) return new Set<string>();
+
+    return computeVisibleQuestionIds(survey.questions, answers);
+  }, [survey, answers]);
 
   const progress = useMemo(() => {
     if (!survey) return 0;

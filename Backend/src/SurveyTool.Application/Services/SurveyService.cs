@@ -85,9 +85,12 @@ namespace SurveyTool.Application.Services
 
         public async Task UpdateAsync(Guid id, UpdateSurveyRequest request)
         {
+            // Fetch the existing survey so we can map old IDs to new IDs
+            Survey? existing = await _repo.GetByIdAsync(id);
+
             // Delete the existing survey
             await _repo.DeleteAsync(id);
-            
+
             // Create a new survey with the same ID
             Survey survey = new Survey
             {
@@ -96,39 +99,116 @@ namespace SurveyTool.Application.Services
                 Description = request.Description
             };
 
-            List<Question> questions = new List<Question>();
-            foreach (QuestionUpsertDto q in request.Questions.OrderBy(x => x.Order))
+            // Prepare ordered collections for stable index-based mapping
+            List<QuestionUpsertDto> orderedRequestQuestions = request.Questions
+                .OrderBy(x => x.Order)
+                .ToList();
+            List<SurveyTool.Domain.Entities.Question> orderedExistingQuestions = existing?.Questions
+                .OrderBy(x => x.Order)
+                .ToList() ?? new List<SurveyTool.Domain.Entities.Question>();
+
+            // Maps from old IDs to new IDs
+            Dictionary<Guid, Guid> oldQuestionIdToNewQuestionId = new Dictionary<Guid, Guid>();
+            Dictionary<Guid, Guid> oldOptionIdToNewOptionId = new Dictionary<Guid, Guid>();
+
+            // First pass: create questions and options, building ID maps by matching order
+            List<Question> newQuestions = new List<Question>();
+            for (int i = 0; i < orderedRequestQuestions.Count; i++)
             {
-                Question question = new Question
+                QuestionUpsertDto rq = orderedRequestQuestions[i];
+
+                Question newQuestion = new Question
                 {
                     Id = Guid.NewGuid(),
                     SurveyId = survey.Id,
-                    Text = q.Text,
-                    Type = (QuestionType)q.Type,
-                    Order = q.Order,
-                    ParentQuestionId = q.ParentQuestionId,
-                    VisibilityRule = q.ParentQuestionId.HasValue && q.VisibleWhenSelectedOptionIds != null
-                        ? new VisibilityRule
-                        {
-                            ParentQuestionId = q.ParentQuestionId.Value,
-                            VisibleWhenSelectedOptionIds = q.VisibleWhenSelectedOptionIds.ToList()
-                        }
-                        : null
+                    Text = rq.Text,
+                    Type = (QuestionType)rq.Type,
+                    Order = rq.Order,
                 };
-                foreach (AnswerOptionUpsertDto opt in q.Options)
+
+                // If there is an existing question at the same order index, record mapping from old -> new IDs
+                if (i < orderedExistingQuestions.Count)
                 {
-                    question.Options.Add(new AnswerOption
+                    SurveyTool.Domain.Entities.Question oldQuestion = orderedExistingQuestions[i];
+                    oldQuestionIdToNewQuestionId[oldQuestion.Id] = newQuestion.Id;
+
+                    // Map options by index (order preserved by the request/options list)
+                    int optionCount = Math.Min(oldQuestion.Options.Count, rq.Options.Count);
+                    for (int oi = 0; oi < rq.Options.Count; oi++)
                     {
-                        Id = Guid.NewGuid(),
-                        QuestionId = question.Id,
-                        Text = opt.Text,
-                        Weight = opt.Weight
-                    });
+                        AnswerOptionUpsertDto ro = rq.Options[oi];
+                        AnswerOption newOption = new AnswerOption
+                        {
+                            Id = Guid.NewGuid(),
+                            QuestionId = newQuestion.Id,
+                            Text = ro.Text,
+                            Weight = ro.Weight
+                        };
+                        newQuestion.Options.Add(newOption);
+
+                        if (oi < oldQuestion.Options.Count)
+                        {
+                            oldOptionIdToNewOptionId[oldQuestion.Options[oi].Id] = newOption.Id;
+                        }
+                    }
                 }
-                questions.Add(question);
+                else
+                {
+                    // No existing question at this index; just create new options
+                    foreach (AnswerOptionUpsertDto ro in rq.Options)
+                    {
+                        newQuestion.Options.Add(new AnswerOption
+                        {
+                            Id = Guid.NewGuid(),
+                            QuestionId = newQuestion.Id,
+                            Text = ro.Text,
+                            Weight = ro.Weight
+                        });
+                    }
+                }
+
+                newQuestions.Add(newQuestion);
             }
-            survey.Questions = questions;
-            
+
+            // Second pass: set parent question IDs and visibility rules using the maps
+            for (int i = 0; i < orderedRequestQuestions.Count; i++)
+            {
+                QuestionUpsertDto rq = orderedRequestQuestions[i];
+                Question target = newQuestions[i];
+
+                if (rq.ParentQuestionId.HasValue)
+                {
+                    Guid oldParentId = rq.ParentQuestionId.Value;
+                    if (oldQuestionIdToNewQuestionId.TryGetValue(oldParentId, out Guid newParentId))
+                    {
+                        target.ParentQuestionId = newParentId;
+
+                        if (rq.VisibleWhenSelectedOptionIds != null)
+                        {
+                            List<Guid> mappedOptionIds = new List<Guid>();
+                            foreach (Guid oldOptId in rq.VisibleWhenSelectedOptionIds)
+                            {
+                                if (oldOptionIdToNewOptionId.TryGetValue(oldOptId, out Guid newOptId))
+                                {
+                                    mappedOptionIds.Add(newOptId);
+                                }
+                            }
+
+                            if (mappedOptionIds.Count > 0)
+                            {
+                                target.VisibilityRule = new VisibilityRule
+                                {
+                                    ParentQuestionId = newParentId,
+                                    VisibleWhenSelectedOptionIds = mappedOptionIds
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+
+            survey.Questions = newQuestions;
+
             await _repo.AddAsync(survey);
         }
 
