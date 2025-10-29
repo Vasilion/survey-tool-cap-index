@@ -60,15 +60,12 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
   const [apiError, setApiError] = useState<string>("");
 
   useEffect(() => {
-    // Only initialize once per surveyId to prevent duplicate loading
     if (isInitialized) return;
 
     if (existingSurvey) {
       setTitle(existingSurvey.title);
       setDescription(existingSurvey.description || "");
 
-      // Create a mapping from frontend index to backend question ID
-      // IMPORTANT: Sort questions by order to ensure indices match
       const sortedQuestionsForMap = [...existingSurvey.questions].sort(
         (a, b) => a.order - b.order
       );
@@ -79,13 +76,10 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       setQuestionIdMap(idMap);
 
       const mappedQuestions = existingSurvey.questions.map((q, index) => {
-        // Convert backend conditional logic to frontend format
         let frontendParentQuestionId = null;
         let frontendVisibleWhenSelectedOptionIds = null;
 
         if (q.parentQuestionId) {
-          // Find the parent question index in the current questions array
-          // We need to find the index of the parent question in the SORTED questions array
           const sortedQuestions = [...existingSurvey.questions].sort(
             (a, b) => a.order - b.order
           );
@@ -93,10 +87,7 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
             (pq) => pq.id === q.parentQuestionId
           );
 
-          // If parent question not found, it might be because the question was recreated
-          // Try to find it by matching the question order instead
           if (parentIndex === -1) {
-            // Find the parent question by looking for a question that comes before this one in order
             const currentQuestionOrder = q.order;
             const parentQuestionByOrder = sortedQuestions.find(
               (pq) => pq.order < currentQuestionOrder
@@ -105,27 +96,17 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
               const newParentIndex = sortedQuestions.findIndex(
                 (pq) => pq.id === parentQuestionByOrder.id
               );
-              // Use the new parent index
               const adjustedParentIndex = newParentIndex;
               if (adjustedParentIndex !== -1) {
                 frontendParentQuestionId = `parent-${adjustedParentIndex}`;
-
-                // Try to map the old option IDs to new option IDs
-                // Since the questions were recreated, we need to look at the raw backend data
-                // The backend should have stored the option IDs correctly
                 if (
                   q.visibleWhenSelectedOptionIds &&
                   q.visibleWhenSelectedOptionIds.length > 0
                 ) {
-                  // Get the new parent question (which we already found by order)
                   const newParentQuestion =
                     sortedQuestions[adjustedParentIndex];
-
-                  // The visibleWhenSelectedOptionIds from the backend should still reference valid option IDs
-                  // Let's try to map them directly to the new parent question's options
                   const mappedOptionIds = q.visibleWhenSelectedOptionIds
                     .map((optionId) => {
-                      // Find the option in the new parent question by ID
                       const optionIndex = newParentQuestion.options.findIndex(
                         (opt) => opt.id === optionId
                       );
@@ -134,11 +115,7 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                         : null;
                     })
                     .filter((id) => id !== null);
-
-                  // If direct ID mapping failed, try to find the option by text
-                  // Since we know the option should be "gg", let's search for it
                   if (mappedOptionIds.length === 0) {
-                    // Look for the option with text "gg" in the parent question
                     const ggOptionIndex = newParentQuestion.options.findIndex(
                       (opt) => opt.text === "gg"
                     );
@@ -148,7 +125,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                         `option-${ggOptionIndex}`,
                       ];
                     } else {
-                      // If "gg" not found, try to find any option that contains "g"
                       const gOptionIndex = newParentQuestion.options.findIndex(
                         (opt) => opt.text.includes("g")
                       );
@@ -158,7 +134,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                           `option-${gOptionIndex}`,
                         ];
                       } else {
-                        // Last resort: select the first option
                         if (newParentQuestion.options.length > 0) {
                           frontendVisibleWhenSelectedOptionIds = [`option-0`];
                         }
@@ -179,7 +154,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
               q.visibleWhenSelectedOptionIds &&
               q.visibleWhenSelectedOptionIds.length > 0
             ) {
-              // Convert option IDs to option indices
               const parentQuestion = sortedQuestions[parentIndex];
               frontendVisibleWhenSelectedOptionIds =
                 q.visibleWhenSelectedOptionIds
@@ -210,7 +184,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       setQuestions(mappedQuestions);
       setIsInitialized(true);
     } else if (surveyId === undefined) {
-      // Reset form when no survey is selected (creating new)
       setTitle("");
       setDescription("");
       setQuestions([]);
@@ -219,7 +192,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
     }
   }, [existingSurvey, surveyId, isInitialized]);
 
-  // Reset initialization when surveyId changes
   useEffect(() => {
     setIsInitialized(false);
   }, [surveyId]);
@@ -274,12 +246,10 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       };
     } = {};
 
-    // Validate title
     if (!title.trim()) {
       newErrors.title = "Survey title is required";
     }
 
-    // Validate questions
     const questionErrors: {
       [key: number]: { text?: string; options?: { [key: number]: string } };
     } = {};
@@ -290,12 +260,10 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
         options?: { [key: number]: string };
       } = {};
 
-      // Validate question text
       if (!q.text.trim()) {
         questionError.text = "Question text is required";
       }
 
-      // Validate options for choice questions
       if (q.type !== QuestionType.FreeText) {
         if (!q.options || q.options.length === 0) {
           questionError.text =
@@ -332,10 +300,7 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
   };
 
   const handleSave = async (): Promise<void> => {
-    // Clear previous errors
     clearErrors();
-
-    // Client-side validation
     if (!validateForm()) {
       return;
     }
@@ -344,7 +309,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       title: title.trim(),
       description: description.trim() || undefined,
       questions: questions.map((q, index) => {
-        // Handle conditional logic
         let parentQuestionId: string | null = null;
         let visibleWhenSelectedOptionIds: string[] | null = null;
 
@@ -355,15 +319,12 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
           const parentQuestion = questions[parentIndex];
 
           if (parentQuestion && existingSurvey) {
-            // For existing surveys: Use the question ID mapping to get the correct parent question ID
-            // But first check if the parent question actually exists in the current survey
             const parentQuestionExists = existingSurvey.questions.some(
               (pq) => pq.id === questionIdMap.get(parentIndex)
             );
             if (parentQuestionExists) {
               parentQuestionId = questionIdMap.get(parentIndex) || null;
             } else {
-              // Parent question doesn't exist anymore, clear the conditional logic
               console.warn(
                 `Parent question at index ${parentIndex} no longer exists, clearing conditional logic`
               );
@@ -376,7 +337,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
               q.visibleWhenSelectedOptionIds.length > 0 &&
               parentQuestionId
             ) {
-              // Map option indices to actual option IDs from existing survey
               const parentQuestion = existingSurvey.questions.find(
                 (q) => q.id === parentQuestionId
               );
@@ -386,7 +346,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                     const optionIndex = parseInt(
                       optionId.replace("option-", "")
                     );
-                    // Match by order/index of the option in the parent question
                     const existingOption = parentQuestion.options[optionIndex];
                     return existingOption?.id || "";
                   })
@@ -418,11 +377,9 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
         });
         onClose();
       } else {
-        // For new surveys with conditional logic, we need a two-step process
         const hasConditionalLogic = questions.some((q) => q.parentQuestionId);
 
         if (hasConditionalLogic) {
-          // Step 1: Create survey without conditionals to get IDs
           const createPayload: CreateSurveyRequest = {
             ...payload,
             questions: payload.questions.map((q) => ({
@@ -436,14 +393,10 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
             createPayload
           );
 
-          // Step 2: Fetch the created survey to get actual question/option IDs
-          // Then update with conditional logic
           const { data: createdSurvey } = await api.get<SurveyDto>(
             `/api/surveys/${newSurveyId}`
           );
 
-          // Step 3: Map conditional logic to actual IDs and update
-          // IMPORTANT: Sort created survey questions by order to match frontend indices
           const sortedCreatedQuestions = [...createdSurvey.questions].sort(
             (a, b) => a.order - b.order
           );
@@ -455,7 +408,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                 const parentIndex = parseInt(
                   q.parentQuestionId.replace("parent-", "")
                 );
-                // Use sorted questions array to match frontend indices
                 const createdParentQuestion =
                   sortedCreatedQuestions[parentIndex];
 
