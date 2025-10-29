@@ -35,20 +35,25 @@ export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<string, SubmitAnswerItem>>({});
   const visibleIds = useMemo(() => {
     if (!survey) return new Set<string>();
-
     return computeVisibleQuestionIds(survey.questions, answers);
   }, [survey, answers]);
 
+  const visibleQuestions = useMemo((): QuestionDto[] => {
+    if (!survey) return [] as QuestionDto[];
+    const sorted: QuestionDto[] = [...survey.questions].sort(
+      (a, b) => a.order - b.order
+    );
+    return sorted.filter((q) => visibleIds.has(q.id));
+  }, [survey, visibleIds]);
+
+  const answeredVisibleCount = useMemo(() => {
+    return Object.keys(answers).filter((id) => visibleIds.has(id)).length;
+  }, [answers, visibleIds]);
+
   const progress = useMemo(() => {
-    if (!survey) return 0;
-    const totalVisible = survey.questions.filter((q) =>
-      visibleIds.has(q.id)
-    ).length;
-    const answered = Object.keys(answers).filter((id) =>
-      visibleIds.has(id)
-    ).length;
-    return totalVisible > 0 ? (answered / totalVisible) * 100 : 0;
-  }, [survey, answers, visibleIds]);
+    const totalVisible = visibleQuestions.length;
+    return totalVisible > 0 ? (answeredVisibleCount / totalVisible) * 100 : 0;
+  }, [visibleQuestions, answeredVisibleCount]);
 
   useEffect(() => {
     if (!survey) return;
@@ -57,7 +62,6 @@ export default function SurveyPage() {
       if (!visibleIds.has(q.id) && updated[q.id]) delete updated[q.id];
     }
     setAnswers(updated);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleIds.size]);
 
   const handleChange = (q: QuestionDto, value: SubmitAnswerItem): void => {
@@ -167,17 +171,14 @@ export default function SurveyPage() {
           </Card>
 
           <Paper elevation={2} className="questions-container">
-            {survey.questions
-              .sort((a, b) => a.order - b.order)
-              .filter((q) => visibleIds.has(q.id))
-              .map((q) => (
-                <Question
-                  key={q.id}
-                  question={q}
-                  value={answers[q.id]}
-                  onChange={(v) => handleChange(q, v)}
-                />
-              ))}
+            {visibleQuestions.map((q: QuestionDto) => (
+              <Question
+                key={q.id}
+                question={q}
+                value={answers[q.id]}
+                onChange={(v) => handleChange(q, v)}
+              />
+            ))}
 
             <Divider className="divider" />
 
@@ -187,13 +188,13 @@ export default function SurveyPage() {
               alignItems="center"
             >
               <Typography variant="body2" color="text.secondary">
-                {Object.keys(answers).length} question(s) answered
+                {answeredVisibleCount} question(s) answered
               </Typography>
               <Button
                 variant="contained"
                 size="large"
                 onClick={handleSubmit}
-                disabled={submit.isPending || Object.keys(answers).length === 0}
+                disabled={submit.isPending || answeredVisibleCount === 0}
                 className="select-container"
               >
                 {submit.isPending ? (

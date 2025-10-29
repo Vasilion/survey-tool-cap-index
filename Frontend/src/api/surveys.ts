@@ -23,6 +23,7 @@ export function useSurvey(id?: string) {
   return useQuery({
     queryKey: ["survey", id],
     enabled: !!id,
+    staleTime: 60_000,
     queryFn: async (): Promise<SurveyDto> => {
       const { data } = await api.get(`/api/surveys/${id}`);
       return data;
@@ -54,8 +55,17 @@ export function useCreateSurvey() {
       const { data } = await api.post("/api/surveys", payload);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async ({ id }) => {
       queryClient.invalidateQueries({ queryKey: ["surveys"] });
+      if (id) {
+        await queryClient.prefetchQuery({
+          queryKey: ["survey", id],
+          queryFn: async (): Promise<SurveyDto> => {
+            const { data } = await api.get(`/api/surveys/${id}`);
+            return data;
+          },
+        });
+      }
     },
   });
 }
@@ -73,11 +83,9 @@ export function useUpdateSurvey() {
       await api.put(`/api/surveys/${id}`, payload);
     },
     onSuccess: (_, { id }) => {
-      // Invalidate all survey-related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["surveys"] });
       queryClient.invalidateQueries({ queryKey: ["survey", id] });
       queryClient.invalidateQueries({ queryKey: ["survey"] });
-      // Remove the specific survey from cache to force refetch
       queryClient.removeQueries({ queryKey: ["survey", id] });
     },
   });

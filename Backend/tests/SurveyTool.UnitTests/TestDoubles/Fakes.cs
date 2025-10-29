@@ -25,7 +25,7 @@ namespace SurveyTool.UnitTests.TestDoubles
 
         public Task<Survey?> GetByIdAsync(Guid id)
         {
-            _store.TryGetValue(id, out var s);
+            _store.TryGetValue(id, out Survey? s);
             return Task.FromResult(s);
         }
 
@@ -58,7 +58,7 @@ namespace SurveyTool.UnitTests.TestDoubles
 
         public Task<SurveyResponse?> GetAsync(Guid responseId)
         {
-            _store.TryGetValue(responseId, out var r);
+            _store.TryGetValue(responseId, out SurveyResponse? r);
             return Task.FromResult(r);
         }
     }

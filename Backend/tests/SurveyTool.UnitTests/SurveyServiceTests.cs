@@ -14,17 +14,17 @@ namespace SurveyTool.UnitTests
         [Fact]
         public async Task Create_And_Get_Survey_Works()
         {
-            var repo = new FakeSurveyRepository();
-            var svc = new SurveyService(repo);
+            FakeSurveyRepository repo = new FakeSurveyRepository();
+            SurveyService svc = new SurveyService(repo);
 
-            var id = await svc.CreateAsync(new CreateSurveyRequest
+            Guid id = await svc.CreateAsync(new CreateSurveyRequest
             {
                 Title = "New",
                 Questions = new List<QuestionUpsertDto>()
             });
 
             id.Should().NotBe(Guid.Empty);
-            var survey = await svc.GetAsync(id);
+            SurveyDto? survey = await svc.GetAsync(id);
             survey.Should().NotBeNull();
             survey!.Title.Should().Be("New");
         }
