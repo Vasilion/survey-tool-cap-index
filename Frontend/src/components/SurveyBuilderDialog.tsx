@@ -75,9 +75,9 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
       });
       setQuestionIdMap(idMap);
 
-      const mappedQuestions = existingSurvey.questions.map((q, index) => {
-        let frontendParentQuestionId = null;
-        let frontendVisibleWhenSelectedOptionIds = null;
+      const mappedQuestions = existingSurvey.questions.map((q) => {
+        let frontendParentQuestionId: string | null = null;
+        let frontendVisibleWhenSelectedOptionIds: string[] | null = null;
 
         if (q.parentQuestionId) {
           const sortedQuestions = [...existingSurvey.questions].sort(
@@ -86,66 +86,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
           const parentIndex = sortedQuestions.findIndex(
             (pq) => pq.id === q.parentQuestionId
           );
-
-          if (parentIndex === -1) {
-            const currentQuestionOrder = q.order;
-            const parentQuestionByOrder = sortedQuestions.find(
-              (pq) => pq.order < currentQuestionOrder
-            );
-            if (parentQuestionByOrder) {
-              const newParentIndex = sortedQuestions.findIndex(
-                (pq) => pq.id === parentQuestionByOrder.id
-              );
-              const adjustedParentIndex = newParentIndex;
-              if (adjustedParentIndex !== -1) {
-                frontendParentQuestionId = `parent-${adjustedParentIndex}`;
-                if (
-                  q.visibleWhenSelectedOptionIds &&
-                  q.visibleWhenSelectedOptionIds.length > 0
-                ) {
-                  const newParentQuestion =
-                    sortedQuestions[adjustedParentIndex];
-                  const mappedOptionIds = q.visibleWhenSelectedOptionIds
-                    .map((optionId) => {
-                      const optionIndex = newParentQuestion.options.findIndex(
-                        (opt) => opt.id === optionId
-                      );
-                      return optionIndex !== -1
-                        ? `option-${optionIndex}`
-                        : null;
-                    })
-                    .filter((id) => id !== null);
-                  if (mappedOptionIds.length === 0) {
-                    const ggOptionIndex = newParentQuestion.options.findIndex(
-                      (opt) => opt.text === "gg"
-                    );
-
-                    if (ggOptionIndex !== -1) {
-                      frontendVisibleWhenSelectedOptionIds = [
-                        `option-${ggOptionIndex}`,
-                      ];
-                    } else {
-                      const gOptionIndex = newParentQuestion.options.findIndex(
-                        (opt) => opt.text.includes("g")
-                      );
-
-                      if (gOptionIndex !== -1) {
-                        frontendVisibleWhenSelectedOptionIds = [
-                          `option-${gOptionIndex}`,
-                        ];
-                      } else {
-                        if (newParentQuestion.options.length > 0) {
-                          frontendVisibleWhenSelectedOptionIds = [`option-0`];
-                        }
-                      }
-                    }
-                  } else if (mappedOptionIds.length > 0) {
-                    frontendVisibleWhenSelectedOptionIds = mappedOptionIds;
-                  }
-                }
-              }
-            }
-          }
 
           if (parentIndex !== -1) {
             frontendParentQuestionId = `parent-${parentIndex}`;
@@ -161,9 +101,9 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                     const optionIndex = parentQuestion.options.findIndex(
                       (opt) => opt.id === optionId
                     );
-                    return optionIndex !== -1 ? `option-${optionIndex}` : "";
+                    return optionIndex !== -1 ? `option-${optionIndex}` : null;
                   })
-                  .filter((id) => id !== "");
+                  .filter((id): id is string => id !== null);
             }
           }
         }
@@ -174,10 +114,7 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
           order: q.order,
           parentQuestionId: frontendParentQuestionId,
           visibleWhenSelectedOptionIds: frontendVisibleWhenSelectedOptionIds,
-          options: q.options.map((o) => ({
-            text: o.text,
-            weight: o.weight,
-          })),
+          options: q.options.map((o) => ({ text: o.text, weight: o.weight })),
         };
       });
 
@@ -324,12 +261,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
             );
             if (parentQuestionExists) {
               parentQuestionId = questionIdMap.get(parentIndex) || null;
-            } else {
-              console.warn(
-                `Parent question at index ${parentIndex} no longer exists, clearing conditional logic`
-              );
-              parentQuestionId = null;
-              visibleWhenSelectedOptionIds = null;
             }
 
             if (
@@ -666,7 +597,6 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
                     </Select>
                   </FormControl>
 
-                  {/* Conditional Question Settings */}
                   {index > 0 && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" gutterBottom>
