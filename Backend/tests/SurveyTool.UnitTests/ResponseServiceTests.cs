@@ -46,7 +46,7 @@ namespace SurveyTool.UnitTests
         }
 
         [Fact]
-        public async Task VisibilityRule_Makes_Q2_Visible_When_Q1A_Selected()
+        public async Task VisibilityRuleMakesQ2VisibleWhenQ1ASelected()
         {
             (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid q1A, Guid _, Guid q2Id, Guid _, Guid _, Guid _) = BuildSurvey();
             ResponseService svc = new ResponseService(repo, respRepo);
@@ -64,7 +64,7 @@ namespace SurveyTool.UnitTests
         }
 
         [Fact]
-        public async Task Submit_Rejects_Answer_For_Hidden_Question()
+        public async Task SubmitRejectsAnswerForHiddenQuestion()
         {
             (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid _, Guid q1B, Guid q2Id, Guid q2_1, Guid _, Guid _) = BuildSurvey();
             ResponseService svc = new ResponseService(repo, respRepo);
@@ -83,7 +83,7 @@ namespace SurveyTool.UnitTests
         }
 
         [Fact]
-        public async Task MultipleChoice_Scoring_Sums_Selected_Weights()
+        public async Task MultipleChoiceScoringSumsSelectedWeights()
         {
             (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid q1A, Guid _, Guid q2Id, Guid q2_1, Guid q2_2, Guid _) = BuildSurvey();
             ResponseService svc = new ResponseService(repo, respRepo);
@@ -102,7 +102,7 @@ namespace SurveyTool.UnitTests
         }
 
         [Fact]
-        public async Task SingleChoice_Requires_Exactly_One_Option()
+        public async Task SingleChoiceRequiresExactlyOneOption()
         {
             (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid q1A, Guid q1B, Guid _, Guid _, Guid _, Guid _) = BuildSurvey();
             ResponseService svc = new ResponseService(repo, respRepo);

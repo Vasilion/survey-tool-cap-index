@@ -12,7 +12,7 @@ namespace SurveyTool.UnitTests
     public class SurveyServiceTests
     {
         [Fact]
-        public async Task Create_And_Get_Survey_Works()
+        public async Task CreateAndGetSurveyWorks()
         {
             FakeSurveyRepository repo = new FakeSurveyRepository();
             SurveyService svc = new SurveyService(repo);
