@@ -11,15 +11,11 @@ This project follows Clean Architecture principles with clear separation of conc
 - **Database**: In-Memory database with seed data
 - **Testing**: xUnit unit tests
 
-## 📋 Features
+## 📋 Notes For Cap Index Team
 
-- ✅ **Survey Management**: Full CRUD operations for surveys
-- ✅ **Question Types**: Single choice, multiple choice, and free text questions
-- ✅ **Conditional Logic**: Questions can be shown/hidden based on previous answers
-- ✅ **Weighted Scoring**: Answer options have configurable weights
-- ✅ **Responsive Design**: Mobile-friendly UI with Material-UI
-- ✅ **Real-time Validation**: Client and server-side validation
-- ✅ **Modern UI**: Dark theme with intuitive navigation
+- **React 18**: I used react 18 specifically because after talking to Laura, she said thats what the team was currently using.
+- **ENV File**: I am aware that typically you would not commit an env file to a repo, however for simplicity sake for the team to run the project locally, I have included it.
+- **Front End Extra**: I know the assignment only asked for a way to take the survey, but i figured it would be better if you could utillize the entire API so i have included a Manage Surveys Page.
 
 ## 🚀 Quick Start
 
@@ -103,10 +99,6 @@ The Entity Relationship Diagram (ERD) is located at:
    - Copy the Mermaid code from `Backend/ERD.md`
    - Paste it into [Mermaid Live Editor](https://mermaid.live/)
    - View the interactive diagram
-
-3. **Option 3 - VS Code Extension:**
-   - Install the "Mermaid Preview" extension in VS Code
-   - Open `Backend/ERD.md` and use the preview feature
 
 ### ERD Overview:
 
@@ -205,32 +197,6 @@ The frontend uses:
 
 - `POST /api/surveys/{surveyId}/responses` - Submit survey response
 
-## 🚀 Deployment
-
-### Backend Deployment
-
-- Deploy to **Azure Web Apps** (free tier)
-- Configure connection strings for production database
-- Set up CORS for production frontend URL
-
-### Frontend Deployment
-
-- Deploy to **Vercel** or **Netlify**
-- Configure environment variables for API URL
-- Build command: `npm run build`
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
 ## 🆘 Troubleshooting
 
 ### Common Issues
@@ -257,15 +223,6 @@ This project is licensed under the MIT License.
    - Clean and rebuild: `dotnet clean && dotnet build`
    - Clear npm cache: `npm cache clean --force`
    - Delete `node_modules` and reinstall
-
-## 📞 Support
-
-For issues and questions:
-
-1. Check the troubleshooting section above
-2. Review the API documentation in Swagger UI
-3. Check the ERD for data model understanding
-4. Create an issue in the repository
 
 ---
 
