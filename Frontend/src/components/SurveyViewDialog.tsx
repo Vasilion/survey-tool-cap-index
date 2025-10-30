@@ -132,12 +132,6 @@ export default function SurveyViewDialog({ surveyId }: Props) {
                     />
                   </Box>
 
-                  {question.description && (
-                    <Typography color="text.secondary" paragraph>
-                      {question.description}
-                    </Typography>
-                  )}
-
                   {question.parentQuestionId && (
                     <Chip
                       label="Conditional Question"

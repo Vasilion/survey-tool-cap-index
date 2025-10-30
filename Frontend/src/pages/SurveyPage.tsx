@@ -33,7 +33,7 @@ export default function SurveyPage() {
   const submit = useSubmitResponse(selectedSurveyId);
 
   const [answers, setAnswers] = useState<Record<string, SubmitAnswerItem>>({});
-  const visibleIds = useMemo(() => {
+  const visibleIds: Set<string> = useMemo(() => {
     if (!survey) return new Set<string>();
     return computeVisibleQuestionIds(survey.questions, answers);
   }, [survey, answers]);
@@ -57,12 +57,14 @@ export default function SurveyPage() {
 
   useEffect(() => {
     if (!survey) return;
-    const updated = { ...answers };
+    const updated: Record<string, SubmitAnswerItem> = { ...answers };
     for (const q of survey.questions) {
-      if (!visibleIds.has(q.id) && updated[q.id]) delete updated[q.id];
+      if (!visibleIds.has(q.id) && updated[q.id]) {
+        delete updated[q.id];
+      }
     }
     setAnswers(updated);
-  }, [visibleIds.size]);
+  }, [survey, visibleIds]);
 
   const handleChange = (q: QuestionDto, value: SubmitAnswerItem): void => {
     setAnswers((prev) => ({ ...prev, [q.id]: value }));
@@ -97,7 +99,7 @@ export default function SurveyPage() {
         Take a Survey
       </Typography>
 
-      {surveys && surveys.length > 0 && (
+      {surveys?.length ? (
         <Card className="survey-card">
           <CardContent className="survey-card-content">
             <FormControl fullWidth>
@@ -116,7 +118,7 @@ export default function SurveyPage() {
             </FormControl>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {!survey ? (
         <Card>
@@ -127,11 +129,11 @@ export default function SurveyPage() {
               gutterBottom
               className="survey-title"
             >
-              {surveys && surveys.length === 0
+              {surveys?.length === 0
                 ? "No surveys available"
                 : "Select a survey to begin"}
             </Typography>
-            {surveys && surveys.length === 0 && (
+            {surveys?.length === 0 && (
               <Typography color="text.secondary" className="survey-description">
                 Create a survey in the "Manage Surveys" tab to get started
               </Typography>
