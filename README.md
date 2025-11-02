@@ -161,6 +161,164 @@ survey-tool-cap-index/
 └── README.md                        # This file
 ```
 
+## 🎯 Architectural Decisions
+
+This section documents key architectural decisions and their rationale:
+
+### Backend Architecture
+
+#### Clean Architecture Layers
+
+The backend is organized into four distinct layers following Clean Architecture principles:
+
+- **Domain Layer** (`SurveyTool.Domain`): Contains entities, value objects, enums, and repository interfaces. This layer has no dependencies on external frameworks.
+- **Application Layer** (`SurveyTool.Application`): Contains business logic, services, DTOs, and validation. Depends only on the Domain layer.
+- **Infrastructure Layer** (`SurveyTool.Infrastructure`): Implements repository interfaces, EF Core configurations, and database context. Depends on both Domain and Application layers.
+- **API Layer** (`SurveyTool.Api`): Minimal API endpoints, dependency injection configuration, and request/response handling. Depends on all other layers.
+
+**Rationale**: This separation ensures business logic is independent of infrastructure concerns, making the codebase testable, maintainable, and allowing for easy swapping of data storage implementations.
+
+#### Repository Pattern
+
+Data access is abstracted through repository interfaces defined in the Domain layer and implemented in the Infrastructure layer.
+
+- **Interfaces**: `ISurveyRepository`, `ISurveyResponseRepository` in Domain layer
+- **Implementations**: Concrete repositories in Infrastructure layer using EF Core
+- **Benefits**: Decouples business logic from data access, enables easy testing with mock repositories
+
+#### Value Objects
+
+Complex domain concepts are modeled as value objects:
+
+- **`VisibilityRule`**: Encapsulates conditional question visibility logic (ParentQuestionId + VisibleWhenSelectedOptionIds)
+- Stored as JSON in the database using EF Core value converters
+- Provides type safety and domain expressiveness while maintaining persistence flexibility
+
+#### JSON Serialization Strategy
+
+Complex types are stored as JSON strings in the database:
+
+- **`VisibilityRule`** → JSON string in `Question.VisibilityRuleJson`
+- **`List<Guid>`** (SelectedOptionIds) → JSON string in `ResponseItem.SelectedOptionIdsJson`
+- **Implementation**: EF Core `ValueConverter<T, string>` for transparent serialization/deserialization
+- **Rationale**: Simplifies schema while maintaining strong typing in the domain model. For production, consider dedicated JSON column types if supported by the database provider.
+
+#### Dependency Injection
+
+- Service lifetimes: All repositories and services are registered as `Scoped` (one instance per HTTP request)
+- Interface-based design: Services depend on interfaces (`ISurveyService`, `IResponseService`) rather than concrete implementations
+- Configuration centralized in `Program.cs`
+
+#### Minimal APIs vs Controllers
+
+The API uses .NET Minimal APIs instead of traditional controllers.
+
+- **Rationale**: Reduced boilerplate, more concise code, and aligns with modern .NET patterns
+- **Trade-off**: Less structure than controllers but sufficient for this application's API surface
+
+#### Request Validation
+
+- **FluentValidation**: Used for all request validation (e.g., `CreateSurveyRequestValidator`)
+- **Validation Layer**: Separate validation classes in `SurveyTool.Application/Validation`
+- **Error Handling**: Custom `ValidationException` returned with appropriate HTTP status codes
+
+#### Exception Handling Strategy
+
+Custom exception types for domain-specific errors:
+
+- **`NotFoundException`**: For missing resources (404)
+- **`ValidationException`**: For invalid requests (400)
+- **Middleware**: Exception handling middleware in `Program.cs` converts exceptions to HTTP responses
+
+#### In-Memory Database
+
+EF Core In-Memory provider is used for data persistence.
+
+- **Rationale**: Simplifies setup for demo/evaluation purposes, no database server required
+- **Limitations**: Data is lost on application restart; not suitable for production
+- **Migration Path**: Can be swapped for SQL Server, PostgreSQL, etc. by changing the EF provider configuration
+
+### Frontend Architecture
+
+#### State Management
+
+- **React Query**: Used for server state management (caching, synchronization, background updates)
+- **Local State**: React hooks (`useState`, `useReducer`) for component-level UI state
+- **Rationale**: React Query handles API state automatically, reducing boilerplate and providing excellent developer experience
+
+#### Type Safety
+
+- **TypeScript**: Full type coverage across the application
+- **Shared Types**: Frontend types mirror backend DTOs for compile-time safety
+- **API Client**: Typed API client using Axios with TypeScript interfaces
+
+#### Business Logic Replication
+
+The visibility computation logic (`computeVisibleQuestionIds`) is implemented in both frontend and backend:
+
+- **Frontend**: Used for real-time UI updates as users answer questions
+- **Backend**: Used for validation when submitting responses
+- **Rationale**: Provides immediate feedback in the UI while ensuring server-side validation
+- **Trade-off**: Logic duplication requires maintenance in two places; consider extracting to a shared library or API endpoint for production
+
+#### Component Architecture
+
+- **Page Components**: Route-level components in `pages/` directory
+- **Reusable Components**: Shared UI components in `components/` directory
+- **Custom Hooks**: Business logic extracted to hooks (e.g., `useSurveyForm`) for reusability
+- **Utility Functions**: Pure functions in `utils/` (e.g., visibility computation)
+
+#### API Client Design
+
+- **Centralized Configuration**: Single Axios instance with base URL configuration
+- **API Modules**: Separate modules for different resources (`surveys.ts`, `responses.ts`)
+- **Environment Variables**: API base URL configurable via `VITE_API_BASE_URL`
+
+### Testing Strategy
+
+#### Backend Testing
+
+- **xUnit**: Testing framework
+- **Test Doubles**: Fake implementations of repositories (`FakeSurveyRepository`, `FakeSurveyResponseRepository`) for isolated unit tests
+- **Service Testing**: Services tested in isolation without EF Core dependencies
+
+#### Frontend Testing
+
+- **Vitest**: Modern testing framework with Vite integration
+- **React Testing Library**: For component testing
+- **Unit Tests**: Utility functions and business logic tested independently
+
+### Data Model Decisions
+
+#### Question Types as Enum
+
+Question types (`SingleChoice`, `MultipleChoice`, `FreeText`) are modeled as an enum stored as an integer in the database.
+
+- **Rationale**: Simple, performant, and easy to extend
+- **Storage**: Efficient integer storage vs. string-based types
+
+#### Scoring System
+
+- **Weighted Options**: Each answer option has a `Weight` property
+- **Aggregation**: Multiple choice questions sum selected option weights
+- **Free Text**: Always scores zero (business rule)
+- **Total Score**: Calculated and stored on `SurveyResponse` for reporting
+
+#### Conditional Logic
+
+- **Parent-Child Relationships**: Questions can have `ParentQuestionId` for hierarchical structure
+- **Visibility Rules**: Questions shown conditionally based on parent question selections
+- **Validation**: Backend enforces that hidden questions cannot be answered
+
+### Design Patterns Used
+
+1. **Repository Pattern**: Abstracts data access
+2. **Service Layer Pattern**: Encapsulates business logic
+3. **DTO Pattern**: Separates API contracts from domain entities
+4. **Dependency Injection**: Enables loose coupling and testability
+5. **Value Object Pattern**: Models domain concepts like `VisibilityRule`
+6. **Exception Handling Pattern**: Domain-specific exceptions with centralized handling
+
 ## 🔧 Development
 
 ### Backend Development
