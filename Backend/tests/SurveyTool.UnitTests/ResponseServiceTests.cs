@@ -118,6 +118,112 @@ namespace SurveyTool.UnitTests
             Func<Task> act = () => svc.SubmitAsync(surveyId, req);
             await act.Should().ThrowAsync<SurveyTool.Application.Common.Exceptions.ValidationException>();
         }
+
+        [Fact]
+        public async Task FreeTextQuestionsScoreZero()
+        {
+            (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid _, Guid q1B, Guid _, Guid _, Guid _, Guid q3Id) = BuildSurvey();
+            ResponseService svc = new ResponseService(repo, respRepo);
+
+            SubmitResponseRequest req = new SubmitResponseRequest
+            {
+                Answers = new List<SubmitAnswerItem>
+                {
+                    new SubmitAnswerItem{ QuestionId = q1Id, SelectedOptionIds = new List<Guid>{ q1B } },
+                    new SubmitAnswerItem{ QuestionId = q3Id, FreeText = "Some text answer", SelectedOptionIds = new List<Guid>() }
+                }
+            };
+
+            SubmitResponseResult result = await svc.SubmitAsync(surveyId, req);
+            result.TotalScore.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task SingleChoiceWithNoOptionThrowsValidationException()
+        {
+            (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid _, Guid _, Guid _, Guid _, Guid _, Guid _) = BuildSurvey();
+            ResponseService svc = new ResponseService(repo, respRepo);
+
+            SubmitResponseRequest req = new SubmitResponseRequest
+            {
+                Answers = new List<SubmitAnswerItem>
+                {
+                    new SubmitAnswerItem{ QuestionId = q1Id, SelectedOptionIds = new List<Guid>() }
+                }
+            };
+
+            Func<Task> act = () => svc.SubmitAsync(surveyId, req);
+            await act.Should().ThrowAsync<SurveyTool.Application.Common.Exceptions.ValidationException>();
+        }
+
+        [Fact]
+        public async Task MultipleChoiceWithNoOptionsThrowsValidationException()
+        {
+            (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid q1A, Guid _, Guid q2Id, Guid _, Guid _, Guid _) = BuildSurvey();
+            ResponseService svc = new ResponseService(repo, respRepo);
+
+            SubmitResponseRequest req = new SubmitResponseRequest
+            {
+                Answers = new List<SubmitAnswerItem>
+                {
+                    new SubmitAnswerItem{ QuestionId = q1Id, SelectedOptionIds = new List<Guid>{ q1A } },
+                    new SubmitAnswerItem{ QuestionId = q2Id, SelectedOptionIds = new List<Guid>() }
+                }
+            };
+
+            Func<Task> act = () => svc.SubmitAsync(surveyId, req);
+            await act.Should().ThrowAsync<SurveyTool.Application.Common.Exceptions.ValidationException>();
+        }
+
+        [Fact]
+        public async Task InvalidQuestionIdThrowsValidationException()
+        {
+            (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid q1Id, Guid q1A, Guid _, Guid _, Guid _, Guid _, Guid _) = BuildSurvey();
+            ResponseService svc = new ResponseService(repo, respRepo);
+
+            SubmitResponseRequest req = new SubmitResponseRequest
+            {
+                Answers = new List<SubmitAnswerItem>
+                {
+                    new SubmitAnswerItem{ QuestionId = q1Id, SelectedOptionIds = new List<Guid>{ q1A } },
+                    new SubmitAnswerItem{ QuestionId = Guid.NewGuid(), SelectedOptionIds = new List<Guid>{ q1A } }
+                }
+            };
+
+            Func<Task> act = () => svc.SubmitAsync(surveyId, req);
+            await act.Should().ThrowAsync<SurveyTool.Application.Common.Exceptions.ValidationException>();
+        }
+
+        [Fact]
+        public async Task EmptyAnswersArrayReturnsZeroScore()
+        {
+            (FakeSurveyRepository repo, FakeSurveyResponseRepository respRepo, Guid surveyId, Guid _, Guid _, Guid _, Guid _, Guid _, Guid _, Guid _) = BuildSurvey();
+            ResponseService svc = new ResponseService(repo, respRepo);
+
+            SubmitResponseRequest req = new SubmitResponseRequest
+            {
+                Answers = new List<SubmitAnswerItem>()
+            };
+
+            SubmitResponseResult result = await svc.SubmitAsync(surveyId, req);
+            result.TotalScore.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task NonExistentSurveyThrowsNotFoundException()
+        {
+            FakeSurveyRepository repo = new FakeSurveyRepository();
+            FakeSurveyResponseRepository respRepo = new FakeSurveyResponseRepository();
+            ResponseService svc = new ResponseService(repo, respRepo);
+
+            SubmitResponseRequest req = new SubmitResponseRequest
+            {
+                Answers = new List<SubmitAnswerItem>()
+            };
+
+            Func<Task> act = () => svc.SubmitAsync(Guid.NewGuid(), req);
+            await act.Should().ThrowAsync<SurveyTool.Application.Common.Exceptions.NotFoundException>();
+        }
     }
 }
 

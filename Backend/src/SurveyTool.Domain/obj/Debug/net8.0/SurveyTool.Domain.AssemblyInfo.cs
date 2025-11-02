@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SurveyTool.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3ed71e5882c95dd14768611b33dea5a020c41c94")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a5b48640c1f0bb34a8c2eda95bd898042ca74dfb")]
 [assembly: System.Reflection.AssemblyProductAttribute("SurveyTool.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SurveyTool.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
