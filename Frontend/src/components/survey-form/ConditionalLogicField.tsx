@@ -39,8 +39,11 @@ const ConditionalLogicField = memo(
           Conditional Logic (Optional)
         </Typography>
         <FormControl fullWidth margin="normal">
-          <InputLabel>Show this question when...</InputLabel>
+          <InputLabel id={`parent-question-label-${index}`}>
+            Show this question when...
+          </InputLabel>
           <Select
+            labelId={`parent-question-label-${index}`}
             value={question.parentQuestionId || ""}
             onChange={(e) => onParentQuestionChange(e.target.value || null)}
             label="Show this question when..."
@@ -59,10 +62,11 @@ const ConditionalLogicField = memo(
 
         {question.parentQuestionId && parentQuestion && (
           <FormControl fullWidth margin="normal">
-            <InputLabel>
+            <InputLabel id={`trigger-options-label-${index}`}>
               Selected option(s) that trigger this question
             </InputLabel>
             <Select
+              labelId={`trigger-options-label-${index}`}
               multiple
               value={question.visibleWhenSelectedOptionIds || []}
               onChange={(e) => {

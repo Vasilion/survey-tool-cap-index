@@ -150,9 +150,13 @@ const QuestionFormField = memo(
           />
 
           <FormControl fullWidth margin="normal">
-            <InputLabel>Question Type</InputLabel>
+            <InputLabel id={`question-type-label-${index}`}>
+              Question Type
+            </InputLabel>
             <Select
+              labelId={`question-type-label-${index}`}
               value={question.type}
+              label="Question Type"
               onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
             >
               {Object.entries(QUESTION_TYPE_DESCRIPTIONS).map(
