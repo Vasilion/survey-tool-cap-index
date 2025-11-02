@@ -13,7 +13,7 @@ This project follows Clean Architecture principles with clear separation of conc
 
 ## 📋 Notes For Cap Index Team
 
-- **React 18**: I used react 18 specifically because after talking to Laura, she said thats what the team was currently using.
+- **React 18**: I used react 18 specifically because after talking to Laura, she said thats what the team was currently using. If I was to use my choice, I would have chosen Next js or React 19. I also really love Angular as I have over a decade of experience with it. That said, I think my implementation of React 18 here was well done.
 - **ENV File**: I am aware that typically you would not commit an env file to a repo, however for simplicity sake for the team to run the project locally, I have included it.
 - **Front End Extra**: I know the assignment only asked for a way to take the survey, but i figured it would be better if you could utillize the entire API so i have included a Manage Surveys Page.
 
