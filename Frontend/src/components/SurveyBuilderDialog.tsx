@@ -1,411 +1,46 @@
-import { useState, useEffect } from "react";
+import { memo } from "react";
 import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
-  Typography,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Delete as DeleteIcon,
-  Save as SaveIcon,
-} from "@mui/icons-material";
-import { useSurvey, useCreateSurvey, useUpdateSurvey } from "@/api/surveys";
-import { api } from "@/api/client";
-import { SurveyDto } from "@/types";
-import {
-  CreateSurveyRequest,
-  UpdateSurveyRequest,
-  QuestionUpsertDto,
-  AnswerOptionUpsertDto,
-  QuestionType,
-} from "@/types";
+import { Save as SaveIcon } from "@mui/icons-material";
+import { useSurveyForm } from "@/hooks/useSurveyForm";
+import { QuestionUpsertDto } from "@/types";
+import QuestionFormField from "./survey-form/QuestionFormField";
 
 type Props = {
   surveyId?: string;
   onClose: () => void;
 };
 
-export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
-  const { data: existingSurvey, isLoading } = useSurvey(surveyId);
-  const createSurvey = useCreateSurvey();
-  const updateSurvey = useUpdateSurvey();
-
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [questions, setQuestions] = useState<QuestionUpsertDto[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [questionIdMap, setQuestionIdMap] = useState<Map<number, string>>(
-    new Map()
-  );
-  const [errors, setErrors] = useState<{
-    title?: string;
-    questions?: {
-      [key: number]: { text?: string; options?: { [key: number]: string } };
-    };
-  }>({});
-  const [apiError, setApiError] = useState<string>("");
-
-  useEffect(() => {
-    if (isInitialized) return;
-
-    if (existingSurvey) {
-      setTitle(existingSurvey.title);
-      setDescription(existingSurvey.description || "");
-
-      const sortedQuestionsForMap = [...existingSurvey.questions].sort(
-        (a, b) => a.order - b.order
-      );
-      const idMap = new Map<number, string>();
-      sortedQuestionsForMap.forEach((q, index) => {
-        idMap.set(index, q.id);
-      });
-      setQuestionIdMap(idMap);
-
-      const mappedQuestions = existingSurvey.questions.map((q) => {
-        let frontendParentQuestionId: string | null = null;
-        let frontendVisibleWhenSelectedOptionIds: string[] | null = null;
-
-        if (q.parentQuestionId) {
-          const sortedQuestions = [...existingSurvey.questions].sort(
-            (a, b) => a.order - b.order
-          );
-          const parentIndex = sortedQuestions.findIndex(
-            (pq) => pq.id === q.parentQuestionId
-          );
-
-          if (parentIndex !== -1) {
-            frontendParentQuestionId = `parent-${parentIndex}`;
-
-            if (
-              q.visibleWhenSelectedOptionIds &&
-              q.visibleWhenSelectedOptionIds.length > 0
-            ) {
-              const parentQuestion = sortedQuestions[parentIndex];
-              frontendVisibleWhenSelectedOptionIds =
-                q.visibleWhenSelectedOptionIds
-                  .map((optionId) => {
-                    const optionIndex = parentQuestion.options.findIndex(
-                      (opt) => opt.id === optionId
-                    );
-                    return optionIndex !== -1 ? `option-${optionIndex}` : null;
-                  })
-                  .filter((id): id is string => id !== null);
-            }
-          }
-        }
-
-        return {
-          text: q.text,
-          type: q.type,
-          order: q.order,
-          parentQuestionId: frontendParentQuestionId,
-          visibleWhenSelectedOptionIds: frontendVisibleWhenSelectedOptionIds,
-          options: q.options.map((o) => ({ text: o.text, weight: o.weight })),
-        };
-      });
-
-      setQuestions(mappedQuestions);
-      setIsInitialized(true);
-    } else if (surveyId === undefined) {
-      setTitle("");
-      setDescription("");
-      setQuestions([]);
-      setQuestionIdMap(new Map());
-      setIsInitialized(true);
-    }
-  }, [existingSurvey, surveyId, isInitialized]);
-
-  useEffect(() => {
-    setIsInitialized(false);
-  }, [surveyId]);
-
-  const addQuestion = (): void => {
-    const newQuestion: QuestionUpsertDto = {
-      text: "",
-      type: QuestionType.SingleChoice,
-      order: questions.length,
-      options: [{ text: "", weight: 1 }],
-    };
-    setQuestions([...questions, newQuestion]);
-  };
-
-  const updateQuestion = (index: number, updated: QuestionUpsertDto): void => {
-    const newQuestions = [...questions];
-    newQuestions[index] = { ...updated, order: index };
-    setQuestions(newQuestions);
-  };
-
-  const deleteQuestion = (index: number): void => {
-    setQuestions(questions.filter((_, i) => i !== index));
-  };
-
-  const addOption = (questionIndex: number): void => {
-    const newQuestions = [...questions];
-    newQuestions[questionIndex].options.push({ text: "", weight: 1 });
-    setQuestions(newQuestions);
-  };
-
-  const updateOption = (
-    questionIndex: number,
-    optionIndex: number,
-    updated: AnswerOptionUpsertDto
-  ): void => {
-    const newQuestions = [...questions];
-    newQuestions[questionIndex].options[optionIndex] = updated;
-    setQuestions(newQuestions);
-  };
-
-  const deleteOption = (questionIndex: number, optionIndex: number): void => {
-    const newQuestions = [...questions];
-    newQuestions[questionIndex].options.splice(optionIndex, 1);
-    setQuestions(newQuestions);
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: {
-      title?: string;
-      questions?: {
-        [key: number]: { text?: string; options?: { [key: number]: string } };
-      };
-    } = {};
-
-    if (!title.trim()) {
-      newErrors.title = "Survey title is required";
-    }
-
-    const questionErrors: {
-      [key: number]: { text?: string; options?: { [key: number]: string } };
-    } = {};
-    for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      const questionError: {
-        text?: string;
-        options?: { [key: number]: string };
-      } = {};
-
-      if (!q.text.trim()) {
-        questionError.text = "Question text is required";
-      }
-
-      if (q.type !== QuestionType.FreeText) {
-        if (!q.options || q.options.length === 0) {
-          questionError.text =
-            "At least one option is required for choice questions";
-        } else {
-          const optionErrors: { [key: number]: string } = {};
-          for (let j = 0; j < q.options.length; j++) {
-            if (!q.options[j].text.trim()) {
-              optionErrors[j] = "Option text is required";
-            }
-          }
-          if (Object.keys(optionErrors).length > 0) {
-            questionError.options = optionErrors;
-          }
-        }
-      }
-
-      if (Object.keys(questionError).length > 0) {
-        questionErrors[i] = questionError;
-      }
-    }
-
-    if (Object.keys(questionErrors).length > 0) {
-      newErrors.questions = questionErrors;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const clearErrors = (): void => {
-    setErrors({});
-    setApiError("");
-  };
-
-  const handleSave = async (): Promise<void> => {
-    clearErrors();
-    if (!validateForm()) {
-      return;
-    }
-
-    const payload: CreateSurveyRequest | UpdateSurveyRequest = {
-      title: title.trim(),
-      description: description.trim() || undefined,
-      questions: questions.map((q, index) => {
-        let parentQuestionId: string | null = null;
-        let visibleWhenSelectedOptionIds: string[] | null = null;
-
-        if (q.parentQuestionId) {
-          const parentIndex = parseInt(
-            q.parentQuestionId.replace("parent-", "")
-          );
-          const parentQuestion = questions[parentIndex];
-
-          if (parentQuestion && existingSurvey) {
-            const parentQuestionExists = existingSurvey.questions.some(
-              (pq) => pq.id === questionIdMap.get(parentIndex)
-            );
-            if (parentQuestionExists) {
-              parentQuestionId = questionIdMap.get(parentIndex) || null;
-            }
-
-            if (
-              q.visibleWhenSelectedOptionIds &&
-              q.visibleWhenSelectedOptionIds.length > 0 &&
-              parentQuestionId
-            ) {
-              const parentQuestion = existingSurvey.questions.find(
-                (q) => q.id === parentQuestionId
-              );
-              if (parentQuestion) {
-                visibleWhenSelectedOptionIds = q.visibleWhenSelectedOptionIds
-                  .map((optionId) => {
-                    const optionIndex = parseInt(
-                      optionId.replace("option-", "")
-                    );
-                    const existingOption = parentQuestion.options[optionIndex];
-                    return existingOption?.id || "";
-                  })
-                  .filter((id) => id !== "");
-              }
-            }
-          }
-        }
-
-        return {
-          text: q.text.trim(),
-          type: q.type,
-          order: index,
-          parentQuestionId,
-          visibleWhenSelectedOptionIds,
-          options: q.options.map((o) => ({
-            text: o.text.trim(),
-            weight: o.weight,
-          })),
-        };
-      }),
-    };
-
-    try {
-      if (surveyId) {
-        await updateSurvey.mutateAsync({
-          id: surveyId,
-          payload: payload as UpdateSurveyRequest,
-        });
-        onClose();
-      } else {
-        const hasConditionalLogic = questions.some((q) => q.parentQuestionId);
-
-        if (hasConditionalLogic) {
-          const createPayload: CreateSurveyRequest = {
-            ...payload,
-            questions: payload.questions.map((q) => ({
-              ...q,
-              parentQuestionId: null,
-              visibleWhenSelectedOptionIds: null,
-            })),
-          };
-
-          const { id: newSurveyId } = await createSurvey.mutateAsync(
-            createPayload
-          );
-
-          const { data: createdSurvey } = await api.get<SurveyDto>(
-            `/api/surveys/${newSurveyId}`
-          );
-
-          const sortedCreatedQuestions = [...createdSurvey.questions].sort(
-            (a, b) => a.order - b.order
-          );
-
-          const updatePayload: UpdateSurveyRequest = {
-            ...payload,
-            questions: questions.map((q, questionIndex) => {
-              if (q.parentQuestionId) {
-                const parentIndex = parseInt(
-                  q.parentQuestionId.replace("parent-", "")
-                );
-                const createdParentQuestion =
-                  sortedCreatedQuestions[parentIndex];
-
-                if (createdParentQuestion) {
-                  const parentQuestionId = createdParentQuestion.id;
-                  let visibleWhenSelectedOptionIds = null;
-
-                  if (
-                    q.visibleWhenSelectedOptionIds &&
-                    q.visibleWhenSelectedOptionIds.length > 0
-                  ) {
-                    visibleWhenSelectedOptionIds =
-                      q.visibleWhenSelectedOptionIds
-                        .map((optionId) => {
-                          const optionIndex = parseInt(
-                            optionId.replace("option-", "")
-                          );
-                          return (
-                            createdParentQuestion.options[optionIndex]?.id || ""
-                          );
-                        })
-                        .filter((id) => id !== "");
-                  }
-
-                  return {
-                    ...q,
-                    parentQuestionId,
-                    visibleWhenSelectedOptionIds,
-                  };
-                }
-              }
-              return q;
-            }),
-          };
-
-          await updateSurvey.mutateAsync({
-            id: newSurveyId,
-            payload: updatePayload,
-          });
-        } else {
-          await createSurvey.mutateAsync(payload as CreateSurveyRequest);
-        }
-        onClose();
-      }
-    } catch (error: any) {
-      // Show more detailed error message
-      if (error?.response?.data) {
-        const errorData = error.response.data;
-
-        if (Array.isArray(errorData) && errorData.length > 0) {
-          const errorMessages = errorData
-            .map(
-              (err: any) =>
-                `${err.PropertyName || "Field"}: ${
-                  err.ErrorMessage || err.message || "Invalid data"
-                }`
-            )
-            .join(", ");
-          setApiError(`Validation errors: ${errorMessages}`);
-        } else {
-          setApiError(`Error: ${errorData.message || "Failed to save survey"}`);
-        }
-      } else {
-        setApiError("Failed to save survey. Please try again.");
-      }
-    }
-  };
+const SurveyBuilderDialog = memo(({ surveyId, onClose }: Props) => {
+  const {
+    isLoading,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    questions,
+    errors,
+    apiError,
+    isSaving,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+    addOption,
+    updateOption,
+    deleteOption,
+    handleSave,
+    clearErrors,
+    clearQuestionError,
+  } = useSurveyForm(surveyId, onClose);
 
   if (isLoading) {
     return (
@@ -478,327 +113,28 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
               alignItems="center"
               mb={2}
             >
-              <Typography variant="h6">Questions</Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={addQuestion}
-                size="small"
+              <Box
+                component="h6"
+                sx={{ m: 0, fontSize: "1.25rem", fontWeight: 600 }}
               >
+                Questions
+              </Box>
+              <Button variant="contained" onClick={addQuestion} size="small">
                 Add Question
               </Button>
             </Box>
 
-            {questions.map((question, index) => (
-              <Card key={index} sx={{ mb: 2 }}>
-                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="flex-start"
-                    mb={2}
-                    flexDirection={{ xs: "column", sm: "row" }}
-                    gap={1}
-                  >
-                    <Box
-                      sx={{
-                        flexGrow: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          fontSize: { xs: "1rem", sm: "1.25rem" },
-                        }}
-                      >
-                        Question {index + 1}
-                      </Typography>
-                      {question.parentQuestionId && (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: "primary.main",
-                            fontWeight: 600,
-                            px: 1,
-                            py: 0.5,
-                            bgcolor: "primary.50",
-                            borderRadius: 1,
-                          }}
-                        >
-                          Conditional
-                        </Typography>
-                      )}
-                    </Box>
-                    <IconButton
-                      color="error"
-                      onClick={() => deleteQuestion(index)}
-                      size="small"
-                      sx={{ alignSelf: { xs: "flex-end", sm: "auto" } }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-
-                  <TextField
-                    fullWidth
-                    label="Question Text"
-                    value={question.text}
-                    onChange={(e) => {
-                      updateQuestion(index, {
-                        ...question,
-                        text: e.target.value,
-                      });
-                      if (errors.questions?.[index]?.text) {
-                        const newErrors = { ...errors };
-                        if (newErrors.questions?.[index]) {
-                          delete newErrors.questions[index].text;
-                          if (
-                            Object.keys(newErrors.questions[index]).length === 0
-                          ) {
-                            delete newErrors.questions[index];
-                          }
-                        }
-                        setErrors(newErrors);
-                      }
-                    }}
-                    margin="normal"
-                    required
-                    error={!!errors.questions?.[index]?.text}
-                    helperText={errors.questions?.[index]?.text}
-                  />
-
-                  <FormControl fullWidth margin="normal">
-                    <InputLabel>Question Type</InputLabel>
-                    <Select
-                      value={question.type}
-                      onChange={(e) =>
-                        updateQuestion(index, {
-                          ...question,
-                          type: e.target.value as QuestionType,
-                          options:
-                            e.target.value === QuestionType.FreeText
-                              ? []
-                              : question.options,
-                        })
-                      }
-                    >
-                      <MenuItem value={QuestionType.SingleChoice}>
-                        Single Choice (only one answer allowed)
-                      </MenuItem>
-                      <MenuItem value={QuestionType.MultipleChoice}>
-                        Multiple Choice (more than one answer can be checked)
-                      </MenuItem>
-                      <MenuItem value={QuestionType.FreeText}>
-                        Free Text (open-ended response)
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  {index > 0 && (
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Conditional Logic (Optional)
-                      </Typography>
-                      <FormControl fullWidth margin="normal">
-                        <InputLabel>Show this question when...</InputLabel>
-                        <Select
-                          value={question.parentQuestionId || ""}
-                          onChange={(e) => {
-                            const parentQuestionId = e.target.value;
-                            updateQuestion(index, {
-                              ...question,
-                              parentQuestionId: parentQuestionId || null,
-                              visibleWhenSelectedOptionIds: parentQuestionId
-                                ? question.visibleWhenSelectedOptionIds
-                                : null,
-                            });
-                          }}
-                          label="Show this question when..."
-                        >
-                          <MenuItem value="">
-                            <em>Always show this question</em>
-                          </MenuItem>
-                          {questions
-                            .slice(0, index)
-                            .map((parentQ, parentIndex) => (
-                              <MenuItem
-                                key={parentIndex}
-                                value={`parent-${parentIndex}`}
-                              >
-                                Question {parentIndex + 1}:{" "}
-                                {parentQ.text.substring(0, 50)}
-                                {parentQ.text.length > 50 ? "..." : ""}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </FormControl>
-
-                      {question.parentQuestionId && (
-                        <FormControl fullWidth margin="normal">
-                          <InputLabel>
-                            Selected option(s) that trigger this question
-                          </InputLabel>
-                          <Select
-                            multiple
-                            value={question.visibleWhenSelectedOptionIds || []}
-                            onChange={(e) => {
-                              const selectedOptionIds = e.target
-                                .value as string[];
-                              updateQuestion(index, {
-                                ...question,
-                                visibleWhenSelectedOptionIds:
-                                  selectedOptionIds.length > 0
-                                    ? selectedOptionIds
-                                    : null,
-                              });
-                            }}
-                            label="Selected option(s) that trigger this question"
-                          >
-                            {(() => {
-                              const parentIndex = parseInt(
-                                question.parentQuestionId!.replace(
-                                  "parent-",
-                                  ""
-                                )
-                              );
-                              const parentQuestion = questions[parentIndex];
-                              return (
-                                parentQuestion?.options?.map(
-                                  (option, optionIndex) => (
-                                    <MenuItem
-                                      key={optionIndex}
-                                      value={`option-${optionIndex}`}
-                                    >
-                                      {option.text}
-                                    </MenuItem>
-                                  )
-                                ) || []
-                              );
-                            })()}
-                          </Select>
-                        </FormControl>
-                      )}
-                    </Box>
-                  )}
-
-                  {question.type !== QuestionType.FreeText && (
-                    <Box sx={{ mt: 2 }}>
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        mb={1}
-                      >
-                        <Typography variant="subtitle2">
-                          Answer Options
-                        </Typography>
-                        <Button
-                          variant="outlined"
-                          startIcon={<AddIcon />}
-                          onClick={() => addOption(index)}
-                          size="small"
-                        >
-                          Add Option
-                        </Button>
-                      </Box>
-
-                      {question.options.map((option, optionIndex) => (
-                        <Box
-                          key={optionIndex}
-                          display="flex"
-                          alignItems="center"
-                          gap={1}
-                          mb={1}
-                          flexDirection={{ xs: "column", sm: "row" }}
-                        >
-                          <TextField
-                            fullWidth
-                            label={`Option ${optionIndex + 1}`}
-                            value={option.text}
-                            onChange={(e) => {
-                              updateOption(index, optionIndex, {
-                                ...option,
-                                text: e.target.value,
-                              });
-                              if (
-                                errors.questions?.[index]?.options?.[
-                                  optionIndex
-                                ]
-                              ) {
-                                const newErrors = { ...errors };
-                                if (newErrors.questions?.[index]?.options) {
-                                  delete newErrors.questions[index].options![
-                                    optionIndex
-                                  ];
-                                  if (
-                                    Object.keys(
-                                      newErrors.questions[index].options!
-                                    ).length === 0
-                                  ) {
-                                    delete newErrors.questions[index].options;
-                                    if (
-                                      Object.keys(newErrors.questions[index])
-                                        .length === 0
-                                    ) {
-                                      delete newErrors.questions[index];
-                                    }
-                                  }
-                                }
-                                setErrors(newErrors);
-                              }
-                            }}
-                            size="small"
-                            required
-                            error={
-                              !!errors.questions?.[index]?.options?.[
-                                optionIndex
-                              ]
-                            }
-                            helperText={
-                              errors.questions?.[index]?.options?.[optionIndex]
-                            }
-                            sx={{ mb: { xs: 1, sm: 0 } }}
-                          />
-                          <Box
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                            width={{ xs: "100%", sm: "auto" }}
-                          >
-                            <TextField
-                              label="Weight"
-                              type="number"
-                              value={option.weight}
-                              onChange={(e) =>
-                                updateOption(index, optionIndex, {
-                                  ...option,
-                                  weight: parseInt(e.target.value) || 1,
-                                })
-                              }
-                              size="small"
-                              sx={{
-                                width: { xs: "100px", sm: 100 },
-                                flexShrink: 0,
-                              }}
-                            />
-                            <IconButton
-                              color="error"
-                              onClick={() => deleteOption(index, optionIndex)}
-                              size="small"
-                              sx={{ flexShrink: 0 }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
+            {questions.map((question: QuestionUpsertDto, index: number) => (
+              <QuestionFormField
+                key={index}
+                question={question}
+                index={index}
+                allQuestions={questions}
+                error={errors.questions?.[index]}
+                onUpdate={updateQuestion}
+                onDelete={deleteQuestion}
+                onClearError={clearQuestionError}
+              />
             ))}
 
             {questions.length === 0 && (
@@ -815,15 +151,15 @@ export default function SurveyBuilderDialog({ surveyId, onClose }: Props) {
           onClick={handleSave}
           variant="contained"
           startIcon={<SaveIcon />}
-          disabled={createSurvey.isPending || updateSurvey.isPending}
+          disabled={isSaving}
         >
-          {createSurvey.isPending || updateSurvey.isPending ? (
-            <CircularProgress size={20} />
-          ) : (
-            "Save Survey"
-          )}
+          {isSaving ? <CircularProgress size={20} /> : "Save Survey"}
         </Button>
       </DialogActions>
     </Dialog>
   );
-}
+});
+
+SurveyBuilderDialog.displayName = "SurveyBuilderDialog";
+
+export default SurveyBuilderDialog;

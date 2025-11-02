@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useSurvey } from "@/api/surveys";
 import {
   Box,
@@ -12,12 +13,16 @@ import {
   Alert,
 } from "@mui/material";
 import { QuestionType } from "@/types";
+import {
+  getQuestionTypeLabel,
+  getQuestionTypeColor,
+} from "@/constants/questionTypes";
 
 type Props = {
   surveyId: string;
 };
 
-export default function SurveyViewDialog({ surveyId }: Props) {
+const SurveyViewDialog = memo(({ surveyId }: Props) => {
   const { data: survey, isLoading, isError } = useSurvey(surveyId);
 
   if (isLoading) {
@@ -31,32 +36,6 @@ export default function SurveyViewDialog({ surveyId }: Props) {
   if (isError || !survey) {
     return <Alert severity="error">Failed to load survey details</Alert>;
   }
-
-  const getQuestionTypeLabel = (type: QuestionType) => {
-    switch (type) {
-      case QuestionType.SingleChoice:
-        return "Single Choice";
-      case QuestionType.MultipleChoice:
-        return "Multiple Choice";
-      case QuestionType.FreeText:
-        return "Free Text";
-      default:
-        return "Unknown";
-    }
-  };
-
-  const getQuestionTypeColor = (type: QuestionType) => {
-    switch (type) {
-      case QuestionType.SingleChoice:
-        return "primary";
-      case QuestionType.MultipleChoice:
-        return "secondary";
-      case QuestionType.FreeText:
-        return "success";
-      default:
-        return "default";
-    }
-  };
 
   return (
     <Box>
@@ -125,8 +104,12 @@ export default function SurveyViewDialog({ surveyId }: Props) {
                       {index + 1}. {question.text}
                     </Typography>
                     <Chip
-                      label={getQuestionTypeLabel(question.type)}
-                      color={getQuestionTypeColor(question.type)}
+                      label={getQuestionTypeLabel(
+                        question.type as QuestionType
+                      )}
+                      color={getQuestionTypeColor(
+                        question.type as QuestionType
+                      )}
                       size="small"
                       sx={{ alignSelf: { xs: "flex-start", sm: "auto" } }}
                     />
@@ -165,4 +148,8 @@ export default function SurveyViewDialog({ surveyId }: Props) {
       )}
     </Box>
   );
-}
+});
+
+SurveyViewDialog.displayName = "SurveyViewDialog";
+
+export default SurveyViewDialog;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -33,10 +33,17 @@ export default function SurveyPage() {
   const submit = useSubmitResponse(selectedSurveyId);
 
   const [answers, setAnswers] = useState<Record<string, SubmitAnswerItem>>({});
+  const prevVisibleIdsRef = useRef<string>("");
+  const prevSurveyIdRef = useRef<string>("");
+
   const visibleIds: Set<string> = useMemo(() => {
     if (!survey) return new Set<string>();
     return computeVisibleQuestionIds(survey.questions, answers);
   }, [survey, answers]);
+
+  const visibleIdsString = useMemo(() => {
+    return Array.from(visibleIds).sort().join(",");
+  }, [visibleIds]);
 
   const visibleQuestions = useMemo((): QuestionDto[] => {
     if (!survey) return [] as QuestionDto[];
@@ -57,29 +64,51 @@ export default function SurveyPage() {
 
   useEffect(() => {
     if (!survey) return;
-    const updated: Record<string, SubmitAnswerItem> = { ...answers };
-    for (const q of survey.questions) {
-      if (!visibleIds.has(q.id) && updated[q.id]) {
-        delete updated[q.id];
-      }
+
+    if (prevSurveyIdRef.current !== survey.id) {
+      prevSurveyIdRef.current = survey.id;
+      prevVisibleIdsRef.current = "";
     }
-    setAnswers(updated);
-  }, [survey, visibleIds]);
 
-  const handleChange = (q: QuestionDto, value: SubmitAnswerItem): void => {
-    setAnswers((prev) => ({ ...prev, [q.id]: value }));
-  };
+    if (visibleIdsString === prevVisibleIdsRef.current) return;
 
-  const handleSubmit = async (): Promise<void> => {
+    prevVisibleIdsRef.current = visibleIdsString;
+
+    setAnswers((prev) => {
+      const updated: Record<string, SubmitAnswerItem> = { ...prev };
+      let hasChanges = false;
+      for (const q of survey.questions) {
+        if (!visibleIds.has(q.id) && updated[q.id]) {
+          delete updated[q.id];
+          hasChanges = true;
+        }
+      }
+      return hasChanges ? updated : prev;
+    });
+  }, [survey, visibleIds, visibleIdsString]);
+
+  const handleChange = useCallback(
+    (q: QuestionDto, value: SubmitAnswerItem): void => {
+      setAnswers((prev) => ({ ...prev, [q.id]: value }));
+    },
+    []
+  );
+
+  const handleSubmit = useCallback(async (): Promise<void> => {
     if (!selectedSurveyId) return;
     const payload: SubmitResponseRequest = { answers: Object.values(answers) };
     await submit.mutateAsync(payload);
-  };
+  }, [selectedSurveyId, answers, submit]);
 
-  const handleSurveyChange = (surveyId: string): void => {
+  const handleSurveyChange = useCallback((surveyId: string): void => {
     setSelectedSurveyId(surveyId);
     setAnswers({});
-  };
+  }, []);
+
+  const handleReset = useCallback((): void => {
+    setAnswers({});
+    submit.reset();
+  }, [submit]);
 
   if (listLoading || isLoading) return <CircularProgress />;
   if (listError || isError)
@@ -229,10 +258,7 @@ export default function SurveyPage() {
                 </Typography>
                 <Button
                   variant="outlined"
-                  onClick={() => {
-                    setAnswers({});
-                    submit.reset();
-                  }}
+                  onClick={handleReset}
                   className="submit-button"
                 >
                   Take Again

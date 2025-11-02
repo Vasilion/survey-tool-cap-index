@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { QuestionDto, QuestionType, SubmitAnswerItem } from "@/types";
 import {
   Box,
@@ -12,6 +13,10 @@ import {
   Typography,
   Chip,
 } from "@mui/material";
+import {
+  getQuestionTypeLabel,
+  getQuestionTypeColor,
+} from "@/constants/questionTypes";
 
 type Props = {
   question: QuestionDto;
@@ -19,47 +24,33 @@ type Props = {
   onChange: (val: SubmitAnswerItem) => void;
 };
 
-export default function Question({ question, value, onChange }: Props) {
-  const handleSingle = (optionId: string) => {
-    onChange({ questionId: question.id, selectedOptionIds: [optionId] });
-  };
+const Question = memo(({ question, value, onChange }: Props) => {
+  const handleSingle = useCallback(
+    (optionId: string) => {
+      onChange({ questionId: question.id, selectedOptionIds: [optionId] });
+    },
+    [question.id, onChange]
+  );
 
-  const handleMulti = (optionId: string, checked: boolean) => {
-    const curr = new Set(value?.selectedOptionIds || []);
-    if (checked) curr.add(optionId);
-    else curr.delete(optionId);
-    onChange({ questionId: question.id, selectedOptionIds: Array.from(curr) });
-  };
+  const handleMulti = useCallback(
+    (optionId: string, checked: boolean) => {
+      const curr = new Set(value?.selectedOptionIds || []);
+      if (checked) curr.add(optionId);
+      else curr.delete(optionId);
+      onChange({
+        questionId: question.id,
+        selectedOptionIds: Array.from(curr),
+      });
+    },
+    [question.id, value?.selectedOptionIds, onChange]
+  );
 
-  const handleText = (text: string) => {
-    onChange({ questionId: question.id, freeText: text });
-  };
-
-  const getQuestionTypeColor = (type: QuestionType) => {
-    switch (type) {
-      case QuestionType.SingleChoice:
-        return "primary";
-      case QuestionType.MultipleChoice:
-        return "secondary";
-      case QuestionType.FreeText:
-        return "success";
-      default:
-        return "default";
-    }
-  };
-
-  const getQuestionTypeLabel = (type: QuestionType) => {
-    switch (type) {
-      case QuestionType.SingleChoice:
-        return "Single Choice";
-      case QuestionType.MultipleChoice:
-        return "Multiple Choice";
-      case QuestionType.FreeText:
-        return "Free Text";
-      default:
-        return "Unknown";
-    }
-  };
+  const handleText = useCallback(
+    (text: string) => {
+      onChange({ questionId: question.id, freeText: text });
+    },
+    [question.id, onChange]
+  );
 
   return (
     <Card className="custom-card question-card">
@@ -73,8 +64,8 @@ export default function Question({ question, value, onChange }: Props) {
             {question.text}
           </Typography>
           <Chip
-            label={getQuestionTypeLabel(question.type)}
-            color={getQuestionTypeColor(question.type)}
+            label={getQuestionTypeLabel(question.type as QuestionType)}
+            color={getQuestionTypeColor(question.type as QuestionType)}
             size="small"
             className="question-type-chip"
           />
@@ -162,4 +153,8 @@ export default function Question({ question, value, onChange }: Props) {
       </CardContent>
     </Card>
   );
-}
+});
+
+Question.displayName = "Question";
+
+export default Question;
